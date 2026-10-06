@@ -1,0 +1,1342 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "const": 2
+    },
+    "matchId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "matchEpoch": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "clientCommandId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "clientSequence": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "command": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/move"
+        },
+        {
+          "$ref": "#/$defs/attack_move"
+        },
+        {
+          "$ref": "#/$defs/attack_ground"
+        },
+        {
+          "$ref": "#/$defs/attack_target"
+        },
+        {
+          "$ref": "#/$defs/gather"
+        },
+        {
+          "$ref": "#/$defs/repair"
+        },
+        {
+          "$ref": "#/$defs/garrison"
+        },
+        {
+          "$ref": "#/$defs/stop"
+        },
+        {
+          "$ref": "#/$defs/hold_position"
+        },
+        {
+          "$ref": "#/$defs/deploy"
+        },
+        {
+          "$ref": "#/$defs/pack"
+        },
+        {
+          "$ref": "#/$defs/patrol"
+        },
+        {
+          "$ref": "#/$defs/build"
+        },
+        {
+          "$ref": "#/$defs/build_wall"
+        },
+        {
+          "$ref": "#/$defs/replace_wall_with_gate"
+        },
+        {
+          "$ref": "#/$defs/continue_build"
+        },
+        {
+          "$ref": "#/$defs/train"
+        },
+        {
+          "$ref": "#/$defs/research"
+        },
+        {
+          "$ref": "#/$defs/advance_age"
+        },
+        {
+          "$ref": "#/$defs/cancel_job"
+        },
+        {
+          "$ref": "#/$defs/cancel_foundation"
+        },
+        {
+          "$ref": "#/$defs/demolish"
+        },
+        {
+          "$ref": "#/$defs/set_gate_mode"
+        },
+        {
+          "$ref": "#/$defs/set_stance"
+        },
+        {
+          "$ref": "#/$defs/ungarrison"
+        },
+        {
+          "$ref": "#/$defs/set_rally"
+        },
+        {
+          "$ref": "#/$defs/reseed_farm"
+        },
+        {
+          "$ref": "#/$defs/set_auto_reseed"
+        },
+        {
+          "$ref": "#/$defs/market_trade"
+        },
+        {
+          "$ref": "#/$defs/tribute"
+        },
+        {
+          "$ref": "#/$defs/surrender"
+        },
+        {
+          "$ref": "#/$defs/upgrade_structure"
+        }
+      ]
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "matchId",
+    "matchEpoch",
+    "clientCommandId",
+    "clientSequence",
+    "command"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:open-frontiers:client-command:v2",
+  "title": "Client gameplay command v1",
+  "$defs": {
+    "move": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "move"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "xMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            },
+            "zMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            }
+          },
+          "required": [
+            "xMm",
+            "zMm"
+          ]
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "target",
+        "queued"
+      ]
+    },
+    "attack_move": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "attack_move"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "xMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            },
+            "zMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            }
+          },
+          "required": [
+            "xMm",
+            "zMm"
+          ]
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "target",
+        "queued"
+      ]
+    },
+    "attack_ground": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "attack_ground"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "xMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            },
+            "zMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            }
+          },
+          "required": [
+            "xMm",
+            "zMm"
+          ]
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "target",
+        "queued"
+      ]
+    },
+    "attack_target": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "attack_target"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "targetId",
+        "queued"
+      ]
+    },
+    "gather": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "gather"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "targetId",
+        "queued"
+      ]
+    },
+    "repair": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "repair"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "targetId",
+        "queued"
+      ]
+    },
+    "garrison": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "garrison"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "targetId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "targetId",
+        "queued"
+      ]
+    },
+    "stop": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "stop"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds"
+      ]
+    },
+    "hold_position": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "hold_position"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds"
+      ]
+    },
+    "deploy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "deploy"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds"
+      ]
+    },
+    "pack": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "pack"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds"
+      ]
+    },
+    "patrol": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "patrol"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "points": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "xMm": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 640000
+              },
+              "zMm": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 640000
+              }
+            },
+            "required": [
+              "xMm",
+              "zMm"
+            ]
+          },
+          "minItems": 2,
+          "maxItems": 8
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "points",
+        "queued"
+      ]
+    },
+    "build": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "build"
+        },
+        "builderIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "buildingType": {
+          "type": "string",
+          "enum": [
+            "town_center",
+            "house",
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "farm",
+            "barracks",
+            "archery_range",
+            "stable",
+            "blacksmith",
+            "market",
+            "siege_workshop",
+            "university",
+            "watchtower",
+            "fortress",
+            "wooden_gate",
+            "stone_gate",
+            "monument",
+            "grand_citadel",
+            "runic_citadel",
+            "titan_citadel",
+            "eternal_citadel",
+            "great_siege_yard",
+            "rune_forge",
+            "ward_spire",
+            "bastion_gate",
+            "runestone_gate",
+            "titan_gate",
+            "eternal_gate"
+          ]
+        },
+        "originCell": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 319
+            },
+            "z": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 319
+            }
+          },
+          "required": [
+            "x",
+            "z"
+          ]
+        },
+        "rotation": {
+          "type": "integer",
+          "enum": [
+            0,
+            90,
+            180,
+            270
+          ]
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "builderIds",
+        "buildingType",
+        "originCell",
+        "rotation",
+        "queued"
+      ]
+    },
+    "build_wall": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "build_wall"
+        },
+        "builderIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "material": {
+          "type": "string",
+          "enum": [
+            "palisade",
+            "stone",
+            "bastion",
+            "runestone",
+            "titan",
+            "eternal"
+          ]
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "x": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 319
+              },
+              "z": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 319
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "builderIds",
+        "material",
+        "cells",
+        "queued"
+      ]
+    },
+    "replace_wall_with_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "replace_wall_with_gate"
+        },
+        "builderIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "wallIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 3,
+          "maxItems": 3
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "builderIds",
+        "wallIds",
+        "queued"
+      ]
+    },
+    "continue_build": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "continue_build"
+        },
+        "builderIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "foundationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "queued": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "builderIds",
+        "foundationId",
+        "queued"
+      ]
+    },
+    "train": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "train"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "unitType": {
+          "type": "string",
+          "enum": [
+            "villager",
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight",
+            "battering_ram",
+            "catapult",
+            "trebuchet",
+            "ironhide_ram",
+            "warwolf_trebuchet",
+            "rune_catapult",
+            "wardbreaker_ballista",
+            "colossus_ram",
+            "stone_warden",
+            "worldbreaker_trebuchet",
+            "crown_colossus"
+          ]
+        },
+        "quantity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId",
+        "unitType",
+        "quantity"
+      ]
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "research"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "technologyId": {
+          "type": "string",
+          "enum": [
+            "forestry_1",
+            "forestry_2",
+            "forestry_3",
+            "mining_1",
+            "mining_2",
+            "wheelbarrow",
+            "hand_cart",
+            "farming_1",
+            "farming_2",
+            "forging_1",
+            "forging_2",
+            "forging_3",
+            "fletching_1",
+            "fletching_2",
+            "fletching_3",
+            "melee_armor_1",
+            "melee_armor_2",
+            "melee_armor_3",
+            "ranged_armor_1",
+            "ranged_armor_2",
+            "ranged_armor_3",
+            "veteran_militia",
+            "elite_militia",
+            "veteran_spearman",
+            "elite_spearman",
+            "veteran_archer",
+            "elite_archer",
+            "elite_knight",
+            "masonry",
+            "royal_muster",
+            "citadel_engineering",
+            "guild_stewardship",
+            "runebound_arms",
+            "runic_engineering",
+            "runic_husbandry",
+            "titanforged_arms",
+            "colossal_engineering",
+            "great_estates",
+            "oath_of_eternity",
+            "eternal_engineering",
+            "eternal_stewardship"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId",
+        "technologyId"
+      ]
+    },
+    "advance_age": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "advance_age"
+        },
+        "townCenterId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "targetAge": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8
+        }
+      },
+      "required": [
+        "kind",
+        "townCenterId",
+        "targetAge"
+      ]
+    },
+    "cancel_job": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "cancel_job"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "jobId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId",
+        "jobId"
+      ]
+    },
+    "cancel_foundation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "cancel_foundation"
+        },
+        "foundationId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "foundationId"
+      ]
+    },
+    "demolish": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "demolish"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId"
+      ]
+    },
+    "set_gate_mode": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "set_gate_mode"
+        },
+        "gateId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "mode": {
+          "type": "string",
+          "enum": [
+            "AUTO",
+            "LOCKED",
+            "OPEN"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "gateId",
+        "mode"
+      ]
+    },
+    "set_stance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "set_stance"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        },
+        "stance": {
+          "type": "string",
+          "enum": [
+            "aggressive",
+            "defensive",
+            "stand_ground"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "unitIds",
+        "stance"
+      ]
+    },
+    "ungarrison": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ungarrison"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "unitIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          },
+          "minItems": 1,
+          "maxItems": 200,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId",
+        "unitIds"
+      ]
+    },
+    "set_rally": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "set_rally"
+        },
+        "buildingId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "target": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "xMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            },
+            "zMm": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 640000
+            }
+          },
+          "required": [
+            "xMm",
+            "zMm"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "buildingId",
+        "target"
+      ]
+    },
+    "reseed_farm": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "reseed_farm"
+        },
+        "farmId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "builderId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "farmId",
+        "builderId"
+      ]
+    },
+    "set_auto_reseed": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "set_auto_reseed"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "kind",
+        "enabled"
+      ]
+    },
+    "market_trade": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "market_trade"
+        },
+        "marketId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "side": {
+          "type": "string",
+          "enum": [
+            "buy",
+            "sell"
+          ]
+        },
+        "resource": {
+          "type": "string",
+          "enum": [
+            "food",
+            "wood",
+            "stone"
+          ]
+        },
+        "lots": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "kind",
+        "marketId",
+        "side",
+        "resource",
+        "lots"
+      ]
+    },
+    "tribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "tribute"
+        },
+        "recipientId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "resource": {
+          "type": "string",
+          "enum": [
+            "food",
+            "wood",
+            "gold",
+            "stone"
+          ]
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10000
+        }
+      },
+      "required": [
+        "kind",
+        "recipientId",
+        "resource",
+        "amount"
+      ]
+    },
+    "surrender": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "surrender"
+        }
+      },
+      "required": [
+        "kind"
+      ]
+    },
+    "upgrade_structure": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "upgrade_structure"
+        },
+        "buildingIds": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 64,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 96,
+            "pattern": "^[A-Za-z0-9_-]+$"
+          }
+        },
+        "targetTypeId": {
+          "enum": [
+            "runic_citadel",
+            "titan_citadel",
+            "eternal_citadel",
+            "bastion_wall",
+            "runestone_wall",
+            "titan_wall",
+            "eternal_wall",
+            "runestone_gate",
+            "titan_gate",
+            "eternal_gate"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "buildingIds",
+        "targetTypeId"
+      ]
+    }
+  }
+}

@@ -1,0 +1,25 @@
+node_modules/
+dist/
+build/
+coverage/
+test-results/
+playwright-report/
+runtime-data/
+.pnpm-store/
+.vite/
+*.log
+*.tmp
+*.temp
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.code-workspace
+
+# Reproducible build outputs; generators and static content remain tracked.
+apps/client/public/art/
+apps/client/public/asset-manifest.json
+packages/shared/src/validators.generated.js
+packages/shared/src/validators.generated.d.ts

@@ -1,0 +1,2069 @@
+{
+  "schemaVersion": 1,
+  "status": "PROPOSED_UNBALANCED_INITIAL_CONTENT",
+  "rulesetId": "legendary_ages_v1",
+  "ages": [
+    {
+      "id": 5,
+      "name": "Citadel Age",
+      "cost": {
+        "food": 2000,
+        "wood": 800,
+        "gold": 1200,
+        "stone": 1200
+      },
+      "researchSeconds": 200,
+      "requiredAge": 4,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "fortress",
+            "university",
+            "market"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Runic Age",
+      "cost": {
+        "food": 3000,
+        "wood": 1200,
+        "gold": 2200,
+        "stone": 1800
+      },
+      "researchSeconds": 240,
+      "requiredAge": 5,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "grand_citadel",
+            "great_siege_yard"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Colossus Age",
+      "cost": {
+        "food": 4500,
+        "wood": 2000,
+        "gold": 3500,
+        "stone": 3000
+      },
+      "researchSeconds": 300,
+      "requiredAge": 6,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "runic_citadel",
+            "rune_forge",
+            "ward_spire"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Eternal Age",
+      "cost": {
+        "food": 6500,
+        "wood": 3000,
+        "gold": 5500,
+        "stone": 5000
+      },
+      "researchSeconds": 360,
+      "requiredAge": 7,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "titan_citadel",
+            "rune_forge",
+            "great_siege_yard"
+          ]
+        }
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "grand_citadel",
+      "name": "Grand Citadel",
+      "minAge": 5,
+      "cost": {
+        "food": 0,
+        "wood": 800,
+        "gold": 400,
+        "stone": 1600
+      },
+      "maxHp": 12000,
+      "buildSeconds": 220,
+      "footprintCells": [
+        10,
+        10
+      ],
+      "populationProvided": 0,
+      "visionM": 26,
+      "garrisonCapacity": 24,
+      "dropOffResources": [],
+      "attack": 12,
+      "attackType": "pierce",
+      "rangeM": 12,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ],
+      "family": "citadel",
+      "tier": 1,
+      "maxPerPlayer": 2,
+      "familyCap": 2,
+      "weaponPorts": 4,
+      "wardEligible": false,
+      "projectileLaunchHeightM": 12.6
+    },
+    {
+      "id": "runic_citadel",
+      "name": "Runic Citadel",
+      "minAge": 6,
+      "cost": {
+        "food": 0,
+        "wood": 1000,
+        "gold": 900,
+        "stone": 2400
+      },
+      "maxHp": 16000,
+      "buildSeconds": 280,
+      "footprintCells": [
+        10,
+        10
+      ],
+      "populationProvided": 0,
+      "visionM": 26,
+      "garrisonCapacity": 24,
+      "dropOffResources": [],
+      "attack": 14,
+      "attackType": "pierce",
+      "rangeM": 12,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 7,
+        "pierce": 14,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "family": "citadel",
+      "tier": 2,
+      "maxPerPlayer": 2,
+      "familyCap": 2,
+      "weaponPorts": 4,
+      "wardEligible": true,
+      "upgradeFrom": "grand_citadel",
+      "upgradeSeconds": 100,
+      "projectileLaunchHeightM": 16.38
+    },
+    {
+      "id": "titan_citadel",
+      "name": "Titan Citadel",
+      "minAge": 7,
+      "cost": {
+        "food": 0,
+        "wood": 1400,
+        "gold": 1500,
+        "stone": 3600
+      },
+      "maxHp": 22000,
+      "buildSeconds": 340,
+      "footprintCells": [
+        10,
+        10
+      ],
+      "populationProvided": 0,
+      "visionM": 28,
+      "garrisonCapacity": 24,
+      "dropOffResources": [],
+      "attack": 17,
+      "attackType": "pierce",
+      "rangeM": 13,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 8,
+        "pierce": 16,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "colossal_engineering"
+      ],
+      "family": "citadel",
+      "tier": 3,
+      "maxPerPlayer": 2,
+      "familyCap": 2,
+      "weaponPorts": 4,
+      "wardEligible": true,
+      "upgradeFrom": "runic_citadel",
+      "upgradeSeconds": 140,
+      "projectileLaunchHeightM": 21.42
+    },
+    {
+      "id": "eternal_citadel",
+      "name": "Eternal Citadel",
+      "minAge": 8,
+      "cost": {
+        "food": 0,
+        "wood": 2000,
+        "gold": 2500,
+        "stone": 5500
+      },
+      "maxHp": 30000,
+      "buildSeconds": 420,
+      "footprintCells": [
+        10,
+        10
+      ],
+      "populationProvided": 0,
+      "visionM": 28,
+      "garrisonCapacity": 24,
+      "dropOffResources": [],
+      "attack": 20,
+      "attackType": "pierce",
+      "rangeM": 14,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 9,
+        "pierce": 18,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "eternal_engineering"
+      ],
+      "family": "citadel",
+      "tier": 4,
+      "maxPerPlayer": 1,
+      "familyCap": 2,
+      "weaponPorts": 4,
+      "wardEligible": true,
+      "upgradeFrom": "titan_citadel",
+      "upgradeSeconds": 180,
+      "projectileLaunchHeightM": 25.83
+    },
+    {
+      "id": "great_siege_yard",
+      "name": "Great Siege Yard",
+      "minAge": 5,
+      "cost": {
+        "food": 0,
+        "wood": 600,
+        "gold": 250,
+        "stone": 300
+      },
+      "maxHp": 3000,
+      "buildSeconds": 150,
+      "footprintCells": [
+        8,
+        6
+      ],
+      "populationProvided": 0,
+      "visionM": 12,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [
+        "ironhide_ram",
+        "warwolf_trebuchet",
+        "rune_catapult",
+        "wardbreaker_ballista",
+        "colossus_ram",
+        "stone_warden",
+        "worldbreaker_trebuchet",
+        "crown_colossus"
+      ],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ]
+    },
+    {
+      "id": "rune_forge",
+      "name": "Rune Forge",
+      "minAge": 6,
+      "cost": {
+        "food": 0,
+        "wood": 350,
+        "gold": 400,
+        "stone": 250
+      },
+      "maxHp": 2200,
+      "buildSeconds": 110,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "populationProvided": 0,
+      "visionM": 12,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "ward_spire",
+      "name": "Ward Spire",
+      "minAge": 6,
+      "cost": {
+        "food": 0,
+        "wood": 200,
+        "gold": 250,
+        "stone": 400
+      },
+      "maxHp": 1800,
+      "buildSeconds": 90,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "populationProvided": 0,
+      "visionM": 12,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 2,
+        "pierce": 4,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "maxPerPlayer": 4
+    },
+    {
+      "id": "bastion_wall",
+      "name": "Bastion Wall",
+      "minAge": 5,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 0,
+        "stone": 25
+      },
+      "maxHp": 2500,
+      "buildSeconds": 18,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ],
+      "family": "wall",
+      "tier": 1,
+      "wallEquivalentCells": 1,
+      "wallMaterial": "bastion",
+      "wardEligible": false,
+      "upgradeFrom": "stone_wall",
+      "upgradeSeconds": 18
+    },
+    {
+      "id": "runestone_wall",
+      "name": "Runestone Wall",
+      "minAge": 6,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 5,
+        "stone": 40
+      },
+      "maxHp": 3500,
+      "buildSeconds": 24,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "family": "wall",
+      "tier": 2,
+      "wallEquivalentCells": 1,
+      "wallMaterial": "runestone",
+      "wardEligible": true,
+      "upgradeFrom": "bastion_wall",
+      "upgradeSeconds": 24
+    },
+    {
+      "id": "titan_wall",
+      "name": "Titan Wall",
+      "minAge": 7,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 10,
+        "stone": 65
+      },
+      "maxHp": 5000,
+      "buildSeconds": 32,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "colossal_engineering"
+      ],
+      "family": "wall",
+      "tier": 3,
+      "wallEquivalentCells": 1,
+      "wallMaterial": "titan",
+      "wardEligible": true,
+      "upgradeFrom": "runestone_wall",
+      "upgradeSeconds": 32
+    },
+    {
+      "id": "eternal_wall",
+      "name": "Eternal Wall",
+      "minAge": 8,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 20,
+        "stone": 100
+      },
+      "maxHp": 7000,
+      "buildSeconds": 42,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "eternal_engineering"
+      ],
+      "family": "wall",
+      "tier": 4,
+      "wallEquivalentCells": 1,
+      "wallMaterial": "eternal",
+      "wardEligible": true,
+      "upgradeFrom": "titan_wall",
+      "upgradeSeconds": 42
+    },
+    {
+      "id": "bastion_gate",
+      "name": "Bastion Gate",
+      "minAge": 5,
+      "cost": {
+        "food": 0,
+        "wood": 100,
+        "gold": 0,
+        "stone": 200
+      },
+      "maxHp": 4000,
+      "buildSeconds": 50,
+      "footprintCells": [
+        5,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 6,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ],
+      "family": "gate",
+      "tier": 1,
+      "wallEquivalentCells": 5,
+      "wallMaterial": "bastion",
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 8,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "wardEligible": false
+    },
+    {
+      "id": "runestone_gate",
+      "name": "Runestone Gate",
+      "minAge": 6,
+      "cost": {
+        "food": 0,
+        "wood": 100,
+        "gold": 100,
+        "stone": 300
+      },
+      "maxHp": 5500,
+      "buildSeconds": 70,
+      "footprintCells": [
+        5,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 6,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "family": "gate",
+      "tier": 2,
+      "wallEquivalentCells": 5,
+      "wallMaterial": "runestone",
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 8,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "wardEligible": true,
+      "upgradeFrom": "bastion_gate",
+      "upgradeSeconds": 30
+    },
+    {
+      "id": "titan_gate",
+      "name": "Titan Gate",
+      "minAge": 7,
+      "cost": {
+        "food": 0,
+        "wood": 150,
+        "gold": 150,
+        "stone": 500
+      },
+      "maxHp": 8000,
+      "buildSeconds": 95,
+      "footprintCells": [
+        5,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 6,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 8,
+      "attackType": "pierce",
+      "rangeM": 6,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "colossal_engineering"
+      ],
+      "family": "gate",
+      "tier": 3,
+      "wallEquivalentCells": 5,
+      "wallMaterial": "titan",
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 8,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "wardEligible": true,
+      "upgradeFrom": "runestone_gate",
+      "upgradeSeconds": 40,
+      "weaponPorts": 2,
+      "projectileLaunchHeightM": 7.8
+    },
+    {
+      "id": "eternal_gate",
+      "name": "Eternal Gate",
+      "minAge": 8,
+      "cost": {
+        "food": 0,
+        "wood": 200,
+        "gold": 250,
+        "stone": 800
+      },
+      "maxHp": 11000,
+      "buildSeconds": 130,
+      "footprintCells": [
+        5,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 6,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 10,
+      "attackType": "pierce",
+      "rangeM": 6,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "produces": [],
+      "requiredTechnologies": [
+        "eternal_engineering"
+      ],
+      "family": "gate",
+      "tier": 4,
+      "wallEquivalentCells": 5,
+      "wallMaterial": "eternal",
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 8,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "wardEligible": true,
+      "upgradeFrom": "titan_gate",
+      "upgradeSeconds": 55,
+      "weaponPorts": 2,
+      "projectileLaunchHeightM": 9.1
+    }
+  ],
+  "units": [
+    {
+      "id": "ironhide_ram",
+      "name": "Ironhide Ram",
+      "minAge": 5,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 350,
+        "gold": 180,
+        "stone": 100
+      },
+      "trainSeconds": 80,
+      "maxHp": 600,
+      "population": 5,
+      "maxPerPlayer": 6,
+      "moveSpeedMps": 1,
+      "collisionRadiusM": 1.3,
+      "armor": {
+        "melee": 0,
+        "pierce": 10,
+        "crush": 0
+      },
+      "attack": 60,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 260
+      },
+      "attackCooldownSeconds": 4,
+      "rangeM": 1.8,
+      "minRangeM": 0,
+      "visionM": 10,
+      "projectileSpeedMps": 0,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "melee"
+      ],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ]
+    },
+    {
+      "id": "warwolf_trebuchet",
+      "name": "Warwolf Trebuchet",
+      "minAge": 5,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 550,
+        "gold": 350,
+        "stone": 200
+      },
+      "trainSeconds": 110,
+      "maxHp": 400,
+      "population": 6,
+      "maxPerPlayer": 4,
+      "moveSpeedMps": 0.9,
+      "collisionRadiusM": 1.5,
+      "armor": {
+        "melee": 0,
+        "pierce": 2,
+        "crush": 0
+      },
+      "attack": 120,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 480
+      },
+      "attackCooldownSeconds": 8,
+      "rangeM": 24,
+      "minRangeM": 6,
+      "visionM": 16,
+      "projectileSpeedMps": 12,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "ranged"
+      ],
+      "requiredTechnologies": [
+        "citadel_engineering"
+      ],
+      "areaDamageBands": [
+        {
+          "radiusM": 1.5,
+          "multiplier": 1
+        },
+        {
+          "radiusM": 3,
+          "multiplier": 0.5
+        }
+      ],
+      "deploySeconds": 6,
+      "packSeconds": 4,
+      "windupSeconds": 2,
+      "projectileLaunchHeightM": 8.043
+    },
+    {
+      "id": "rune_catapult",
+      "name": "Rune Catapult",
+      "minAge": 6,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 450,
+        "gold": 350,
+        "stone": 250
+      },
+      "trainSeconds": 100,
+      "maxHp": 320,
+      "population": 5,
+      "maxPerPlayer": 6,
+      "moveSpeedMps": 1.1,
+      "collisionRadiusM": 1.2,
+      "armor": {
+        "melee": 0,
+        "pierce": 2,
+        "crush": 0
+      },
+      "attack": 100,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 180
+      },
+      "attackCooldownSeconds": 7,
+      "rangeM": 14,
+      "minRangeM": 4,
+      "visionM": 14,
+      "projectileSpeedMps": 12,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "ranged"
+      ],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ],
+      "areaDamageBands": [
+        {
+          "radiusM": 2,
+          "multiplier": 1
+        },
+        {
+          "radiusM": 4,
+          "multiplier": 0.5
+        }
+      ],
+      "windupSeconds": 1,
+      "wardDepletionMultiplier": 2,
+      "projectileLaunchHeightM": 4.411
+    },
+    {
+      "id": "wardbreaker_ballista",
+      "name": "Wardbreaker Ballista",
+      "minAge": 6,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 350,
+        "gold": 300,
+        "stone": 100
+      },
+      "trainSeconds": 80,
+      "maxHp": 300,
+      "population": 4,
+      "maxPerPlayer": 6,
+      "moveSpeedMps": 1.2,
+      "collisionRadiusM": 1,
+      "armor": {
+        "melee": 0,
+        "pierce": 3,
+        "crush": 0
+      },
+      "attack": 65,
+      "attackType": "pierce",
+      "bonusDamage": {
+        "building": 125
+      },
+      "attackCooldownSeconds": 6,
+      "rangeM": 18,
+      "minRangeM": 3,
+      "visionM": 14,
+      "projectileSpeedMps": 22,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "ranged"
+      ],
+      "requiredTechnologies": [
+        "runic_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ],
+      "wardDepletionMultiplier": 3,
+      "projectileLaunchHeightM": 1.654
+    },
+    {
+      "id": "colossus_ram",
+      "name": "Colossus Ram",
+      "minAge": 7,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 1000,
+        "gold": 600,
+        "stone": 500
+      },
+      "trainSeconds": 150,
+      "maxHp": 1400,
+      "population": 10,
+      "maxPerPlayer": 2,
+      "moveSpeedMps": 0.8,
+      "collisionRadiusM": 2.2,
+      "armor": {
+        "melee": 2,
+        "pierce": 12,
+        "crush": 0
+      },
+      "attack": 120,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 780
+      },
+      "attackCooldownSeconds": 5,
+      "rangeM": 2.5,
+      "minRangeM": 0,
+      "visionM": 12,
+      "projectileSpeedMps": 0,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "melee",
+        "colossal"
+      ],
+      "requiredTechnologies": [
+        "colossal_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ]
+    },
+    {
+      "id": "stone_warden",
+      "name": "Stone Warden",
+      "minAge": 7,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 900,
+        "stone": 1600
+      },
+      "trainSeconds": 160,
+      "maxHp": 1800,
+      "population": 12,
+      "maxPerPlayer": 2,
+      "moveSpeedMps": 0.9,
+      "collisionRadiusM": 1.6,
+      "armor": {
+        "melee": 6,
+        "pierce": 10,
+        "crush": 2
+      },
+      "attack": 70,
+      "attackType": "melee",
+      "bonusDamage": {
+        "building": 120,
+        "siege": 80
+      },
+      "attackCooldownSeconds": 3,
+      "rangeM": 2.5,
+      "minRangeM": 0,
+      "visionM": 14,
+      "projectileSpeedMps": 0,
+      "canGarrison": false,
+      "tags": [
+        "construct",
+        "melee",
+        "colossal"
+      ],
+      "requiredTechnologies": [
+        "colossal_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ]
+    },
+    {
+      "id": "worldbreaker_trebuchet",
+      "name": "Worldbreaker Trebuchet",
+      "minAge": 8,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 1800,
+        "gold": 1400,
+        "stone": 1400
+      },
+      "trainSeconds": 220,
+      "maxHp": 850,
+      "population": 14,
+      "maxPerPlayer": 1,
+      "moveSpeedMps": 0.6,
+      "collisionRadiusM": 2.4,
+      "armor": {
+        "melee": 0,
+        "pierce": 4,
+        "crush": 0
+      },
+      "attack": 160,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 1440
+      },
+      "attackCooldownSeconds": 16,
+      "rangeM": 36,
+      "minRangeM": 10,
+      "visionM": 18,
+      "projectileSpeedMps": 8,
+      "canGarrison": false,
+      "tags": [
+        "siege",
+        "ranged",
+        "colossal"
+      ],
+      "requiredTechnologies": [
+        "eternal_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ],
+      "areaDamageBands": [
+        {
+          "radiusM": 2,
+          "multiplier": 1
+        },
+        {
+          "radiusM": 5,
+          "multiplier": 0.5
+        },
+        {
+          "radiusM": 8,
+          "multiplier": 0.25
+        }
+      ],
+      "deploySeconds": 12,
+      "packSeconds": 10,
+      "windupSeconds": 4,
+      "ammunitionCost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 0,
+        "stone": 40
+      },
+      "projectileLaunchHeightM": 12.629
+    },
+    {
+      "id": "crown_colossus",
+      "name": "Crown Colossus",
+      "minAge": 8,
+      "producedAt": "great_siege_yard",
+      "cost": {
+        "food": 0,
+        "wood": 2000,
+        "gold": 2000,
+        "stone": 3000
+      },
+      "trainSeconds": 240,
+      "maxHp": 2800,
+      "population": 16,
+      "maxPerPlayer": 1,
+      "moveSpeedMps": 0.7,
+      "collisionRadiusM": 2.6,
+      "armor": {
+        "melee": 6,
+        "pierce": 12,
+        "crush": 2
+      },
+      "attack": 100,
+      "attackType": "crush",
+      "bonusDamage": {
+        "building": 350
+      },
+      "attackCooldownSeconds": 4,
+      "rangeM": 2.8,
+      "minRangeM": 0,
+      "visionM": 18,
+      "projectileSpeedMps": 0,
+      "canGarrison": false,
+      "tags": [
+        "construct",
+        "melee",
+        "colossal"
+      ],
+      "requiredTechnologies": [
+        "eternal_engineering"
+      ],
+      "requiredBuildings": [
+        "rune_forge"
+      ],
+      "mobileGarrisonCapacity": 8,
+      "turret": {
+        "attack": 40,
+        "attackType": "pierce",
+        "bonusDamage": {
+          "siege": 60
+        },
+        "rangeM": 12,
+        "attackCooldownSeconds": 4,
+        "projectileSpeedMps": 22,
+        "projectileLaunchHeightM": 11.7
+      }
+    }
+  ],
+  "technologies": [
+    {
+      "id": "royal_muster",
+      "name": "Royal Muster",
+      "minAge": 5,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 500,
+        "wood": 0,
+        "gold": 400,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "skirmisher"
+          ],
+          "stat": "bonusDamage.archer",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "citadel_engineering",
+      "name": "Citadel Engineering",
+      "minAge": 5,
+      "researchedAt": "university",
+      "cost": {
+        "food": 0,
+        "wood": 500,
+        "gold": 400,
+        "stone": 400
+      },
+      "researchSeconds": 100,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "trebuchet"
+          ],
+          "stat": "bonusDamage.building",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "constructionRate",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "guild_stewardship",
+      "name": "Guild Stewardship",
+      "minAge": 5,
+      "researchedAt": "market",
+      "cost": {
+        "food": 500,
+        "wood": 300,
+        "gold": 200,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.forage",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "farm"
+          ],
+          "stat": "foodCapacity",
+          "operation": "add",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "runebound_arms",
+      "name": "Runebound Arms",
+      "minAge": 6,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 750,
+        "wood": 0,
+        "gold": 650,
+        "stone": 200
+      },
+      "researchSeconds": 110,
+      "prerequisites": [
+        "royal_muster"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "skirmisher"
+          ],
+          "stat": "bonusDamage.archer",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "runic_engineering",
+      "name": "Runic Engineering",
+      "minAge": 6,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 0,
+        "wood": 700,
+        "gold": 650,
+        "stone": 600
+      },
+      "researchSeconds": 120,
+      "prerequisites": [
+        "citadel_engineering"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "trebuchet"
+          ],
+          "stat": "bonusDamage.building",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "constructionRate",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "runic_husbandry",
+      "name": "Runic Husbandry",
+      "minAge": 6,
+      "researchedAt": "market",
+      "cost": {
+        "food": 750,
+        "wood": 450,
+        "gold": 350,
+        "stone": 0
+      },
+      "researchSeconds": 110,
+      "prerequisites": [
+        "guild_stewardship"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.forage",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "farm"
+          ],
+          "stat": "foodCapacity",
+          "operation": "add",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "titanforged_arms",
+      "name": "Titanforged Arms",
+      "minAge": 7,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 1100,
+        "wood": 0,
+        "gold": 1000,
+        "stone": 400
+      },
+      "researchSeconds": 140,
+      "prerequisites": [
+        "runebound_arms"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "skirmisher"
+          ],
+          "stat": "bonusDamage.archer",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.colossal",
+          "operation": "add",
+          "value": 40
+        }
+      ]
+    },
+    {
+      "id": "colossal_engineering",
+      "name": "Colossal Engineering",
+      "minAge": 7,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 0,
+        "wood": 1000,
+        "gold": 1000,
+        "stone": 900
+      },
+      "researchSeconds": 150,
+      "prerequisites": [
+        "runic_engineering"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "trebuchet"
+          ],
+          "stat": "bonusDamage.building",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "constructionRate",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "great_estates",
+      "name": "Great Estates",
+      "minAge": 7,
+      "researchedAt": "market",
+      "cost": {
+        "food": 1100,
+        "wood": 650,
+        "gold": 550,
+        "stone": 0
+      },
+      "researchSeconds": 140,
+      "prerequisites": [
+        "runic_husbandry"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.forage",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "farm"
+          ],
+          "stat": "foodCapacity",
+          "operation": "add",
+          "value": 100
+        }
+      ]
+    },
+    {
+      "id": "oath_of_eternity",
+      "name": "Oath Of Eternity",
+      "minAge": 8,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 1600,
+        "wood": 0,
+        "gold": 1500,
+        "stone": 600
+      },
+      "researchSeconds": 180,
+      "prerequisites": [
+        "titanforged_arms"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "skirmisher"
+          ],
+          "stat": "bonusDamage.archer",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "eternal_engineering",
+      "name": "Eternal Engineering",
+      "minAge": 8,
+      "researchedAt": "rune_forge",
+      "cost": {
+        "food": 0,
+        "wood": 1400,
+        "gold": 1500,
+        "stone": 1300
+      },
+      "researchSeconds": 190,
+      "prerequisites": [
+        "colossal_engineering"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "catapult",
+            "trebuchet"
+          ],
+          "stat": "attack",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "battering_ram",
+            "trebuchet"
+          ],
+          "stat": "bonusDamage.building",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "constructionRate",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "eternal_stewardship",
+      "name": "Eternal Stewardship",
+      "minAge": 8,
+      "researchedAt": "market",
+      "cost": {
+        "food": 1500,
+        "wood": 900,
+        "gold": 800,
+        "stone": 0
+      },
+      "researchSeconds": 170,
+      "prerequisites": [
+        "great_estates"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.forage",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "farm"
+          ],
+          "stat": "foodCapacity",
+          "operation": "add",
+          "value": 100
+        }
+      ]
+    }
+  ],
+  "wards": {
+    "radiusM": 24,
+    "maxTargets": 6,
+    "quietSeconds": 20,
+    "byAge": {
+      "6": {
+        "citadel": 1500,
+        "gate": 750,
+        "wall": 300,
+        "recoveryPerSecond": 30
+      },
+      "7": {
+        "citadel": 2500,
+        "gate": 1100,
+        "wall": 450,
+        "recoveryPerSecond": 45
+      },
+      "8": {
+        "citadel": 4000,
+        "gate": 1500,
+        "wall": 600,
+        "recoveryPerSecond": 60
+      }
+    }
+  },
+  "longWar": {
+    "perFactionNonStartingMinimum": {
+      "wood": 60000,
+      "gold": 45000,
+      "stone": 50000
+    },
+    "outerExpansionFraction": 0.5,
+    "preservePerNodeYields": true,
+    "minimumRoutes": 2,
+    "minimumRouteWidthM": 32,
+    "forestOpeningWidthM": 48,
+    "maxResourceNodes": 32000
+  }
+}

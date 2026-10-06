@@ -1,0 +1,1427 @@
+{
+  "schemaVersion": 1,
+  "status": "GENERATED_ASSETS_PENDING_VISUAL_REVIEW",
+  "unitAssets": [
+    {
+      "id": "villager",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death",
+        "gather_food",
+        "gather_wood",
+        "mine",
+        "build",
+        "repair",
+        "carry"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/villager"
+    },
+    {
+      "id": "scout",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/scout"
+    },
+    {
+      "id": "militia",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/militia"
+    },
+    {
+      "id": "spearman",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/spearman"
+    },
+    {
+      "id": "archer",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/archer"
+    },
+    {
+      "id": "skirmisher",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/skirmisher"
+    },
+    {
+      "id": "light_cavalry",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/light_cavalry"
+    },
+    {
+      "id": "knight",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/knight"
+    },
+    {
+      "id": "battering_ram",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/battering_ram"
+    },
+    {
+      "id": "catapult",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/catapult"
+    },
+    {
+      "id": "trebuchet",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death",
+        "packed",
+        "deploy",
+        "pack"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/trebuchet"
+    },
+    {
+      "id": "ironhide_ram",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/ironhide_ram"
+    },
+    {
+      "id": "warwolf_trebuchet",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death",
+        "deploy",
+        "pack"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/warwolf_trebuchet"
+    },
+    {
+      "id": "rune_catapult",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/rune_catapult"
+    },
+    {
+      "id": "wardbreaker_ballista",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/wardbreaker_ballista"
+    },
+    {
+      "id": "colossus_ram",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/colossus_ram"
+    },
+    {
+      "id": "stone_warden",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/stone_warden"
+    },
+    {
+      "id": "worldbreaker_trebuchet",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death",
+        "deploy",
+        "pack"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/worldbreaker_trebuchet"
+    },
+    {
+      "id": "crown_colossus",
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "requiredAnimations": [
+        "idle",
+        "move",
+        "attack",
+        "hit",
+        "death"
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/crown_colossus"
+    }
+  ],
+  "buildingAssets": [
+    {
+      "id": "town_center",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/town_center"
+    },
+    {
+      "id": "house",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/house"
+    },
+    {
+      "id": "mill",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/mill"
+    },
+    {
+      "id": "lumber_camp",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/lumber_camp"
+    },
+    {
+      "id": "mining_camp",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/mining_camp"
+    },
+    {
+      "id": "farm",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/farm"
+    },
+    {
+      "id": "barracks",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/barracks"
+    },
+    {
+      "id": "archery_range",
+      "ages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/archery_range"
+    },
+    {
+      "id": "stable",
+      "ages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/stable"
+    },
+    {
+      "id": "blacksmith",
+      "ages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/blacksmith"
+    },
+    {
+      "id": "market",
+      "ages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/market"
+    },
+    {
+      "id": "siege_workshop",
+      "ages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/siege_workshop"
+    },
+    {
+      "id": "university",
+      "ages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/university"
+    },
+    {
+      "id": "watchtower",
+      "ages": [
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/watchtower"
+    },
+    {
+      "id": "fortress",
+      "ages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/fortress"
+    },
+    {
+      "id": "palisade_wall",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/palisade_wall"
+    },
+    {
+      "id": "stone_wall",
+      "ages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/stone_wall"
+    },
+    {
+      "id": "wooden_gate",
+      "ages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/wooden_gate"
+    },
+    {
+      "id": "stone_gate",
+      "ages": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/stone_gate"
+    },
+    {
+      "id": "monument",
+      "ages": [
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/monument"
+    },
+    {
+      "id": "grand_citadel",
+      "ages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/grand_citadel"
+    },
+    {
+      "id": "runic_citadel",
+      "ages": [
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/runic_citadel"
+    },
+    {
+      "id": "titan_citadel",
+      "ages": [
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/titan_citadel"
+    },
+    {
+      "id": "eternal_citadel",
+      "ages": [
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/eternal_citadel"
+    },
+    {
+      "id": "great_siege_yard",
+      "ages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/great_siege_yard"
+    },
+    {
+      "id": "rune_forge",
+      "ages": [
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/rune_forge"
+    },
+    {
+      "id": "ward_spire",
+      "ages": [
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/ward_spire"
+    },
+    {
+      "id": "bastion_wall",
+      "ages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/bastion_wall"
+    },
+    {
+      "id": "runestone_wall",
+      "ages": [
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/runestone_wall"
+    },
+    {
+      "id": "titan_wall",
+      "ages": [
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/titan_wall"
+    },
+    {
+      "id": "eternal_wall",
+      "ages": [
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/eternal_wall"
+    },
+    {
+      "id": "bastion_gate",
+      "ages": [
+        5,
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/bastion_gate"
+    },
+    {
+      "id": "runestone_gate",
+      "ages": [
+        6,
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/runestone_gate"
+    },
+    {
+      "id": "titan_gate",
+      "ages": [
+        7,
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/titan_gate"
+    },
+    {
+      "id": "eternal_gate",
+      "ages": [
+        8
+      ],
+      "requiredStates": [
+        "foundation",
+        "construction",
+        "complete",
+        "damaged",
+        "destroyed",
+        "open",
+        "closed"
+      ],
+      "requiredLods": [
+        0,
+        1,
+        2
+      ],
+      "teamVariants": 11,
+      "sourceGeneratorRequired": true,
+      "assetPath": "apps/client/public/art/frontier-assets.json#assets/eternal_gate"
+    }
+  ],
+  "environmentAssets": [
+    "grass_terrain",
+    "dirt_terrain",
+    "stone_terrain",
+    "water_surface",
+    "tree_oak",
+    "tree_pine",
+    "tree_round_canopy",
+    "forage_patch",
+    "gold_deposit",
+    "stone_quarry",
+    "cliff",
+    "ramp",
+    "bridge",
+    "farm_growing",
+    "farm_exhausted",
+    "wall_end_cap",
+    "wall_corner",
+    "arrow",
+    "catapult_stone",
+    "trebuchet_stone",
+    "rubble",
+    "construction_scaffold",
+    "smoke",
+    "fire",
+    "dust",
+    "fog_mask"
+  ],
+  "uiAssets": [
+    "selection_ring",
+    "rally_flag",
+    "move_marker",
+    "attack_marker",
+    "valid_placement",
+    "invalid_placement",
+    "food_icon",
+    "wood_icon",
+    "gold_icon",
+    "stone_icon",
+    "population_icon",
+    "idle_worker_icon",
+    "age_icons_1_to_4",
+    "eleven_team_heraldry_patterns",
+    "tech_icon_forestry_1",
+    "tech_icon_forestry_2",
+    "tech_icon_forestry_3",
+    "tech_icon_mining_1",
+    "tech_icon_mining_2",
+    "tech_icon_wheelbarrow",
+    "tech_icon_hand_cart",
+    "tech_icon_farming_1",
+    "tech_icon_farming_2",
+    "tech_icon_forging_1",
+    "tech_icon_forging_2",
+    "tech_icon_forging_3",
+    "tech_icon_fletching_1",
+    "tech_icon_fletching_2",
+    "tech_icon_fletching_3",
+    "tech_icon_melee_armor_1",
+    "tech_icon_melee_armor_2",
+    "tech_icon_melee_armor_3",
+    "tech_icon_ranged_armor_1",
+    "tech_icon_ranged_armor_2",
+    "tech_icon_ranged_armor_3",
+    "tech_icon_veteran_militia",
+    "tech_icon_elite_militia",
+    "tech_icon_veteran_spearman",
+    "tech_icon_elite_spearman",
+    "tech_icon_veteran_archer",
+    "tech_icon_elite_archer",
+    "tech_icon_elite_knight",
+    "tech_icon_masonry",
+    "unit_icon_villager",
+    "unit_icon_scout",
+    "unit_icon_militia",
+    "unit_icon_spearman",
+    "unit_icon_archer",
+    "unit_icon_skirmisher",
+    "unit_icon_light_cavalry",
+    "unit_icon_knight",
+    "unit_icon_battering_ram",
+    "unit_icon_catapult",
+    "unit_icon_trebuchet",
+    "building_icon_town_center",
+    "building_icon_house",
+    "building_icon_mill",
+    "building_icon_lumber_camp",
+    "building_icon_mining_camp",
+    "building_icon_farm",
+    "building_icon_barracks",
+    "building_icon_archery_range",
+    "building_icon_stable",
+    "building_icon_blacksmith",
+    "building_icon_market",
+    "building_icon_siege_workshop",
+    "building_icon_university",
+    "building_icon_watchtower",
+    "building_icon_fortress",
+    "building_icon_palisade_wall",
+    "building_icon_stone_wall",
+    "building_icon_wooden_gate",
+    "building_icon_stone_gate",
+    "building_icon_monument",
+    "age_icons_5_to_8",
+    "tech_icon_royal_muster",
+    "tech_icon_citadel_engineering",
+    "tech_icon_guild_stewardship",
+    "tech_icon_runebound_arms",
+    "tech_icon_runic_engineering",
+    "tech_icon_runic_husbandry",
+    "tech_icon_titanforged_arms",
+    "tech_icon_colossal_engineering",
+    "tech_icon_great_estates",
+    "tech_icon_oath_of_eternity",
+    "tech_icon_eternal_engineering",
+    "tech_icon_eternal_stewardship",
+    "unit_icon_ironhide_ram",
+    "unit_icon_warwolf_trebuchet",
+    "unit_icon_rune_catapult",
+    "unit_icon_wardbreaker_ballista",
+    "unit_icon_colossus_ram",
+    "unit_icon_stone_warden",
+    "unit_icon_worldbreaker_trebuchet",
+    "unit_icon_crown_colossus",
+    "building_icon_grand_citadel",
+    "building_icon_runic_citadel",
+    "building_icon_titan_citadel",
+    "building_icon_eternal_citadel",
+    "building_icon_great_siege_yard",
+    "building_icon_rune_forge",
+    "building_icon_ward_spire",
+    "building_icon_bastion_wall",
+    "building_icon_runestone_wall",
+    "building_icon_titan_wall",
+    "building_icon_eternal_wall",
+    "building_icon_bastion_gate",
+    "building_icon_runestone_gate",
+    "building_icon_titan_gate",
+    "building_icon_eternal_gate"
+  ],
+  "audioAssets": [
+    "selection",
+    "order_ack",
+    "gather_wood",
+    "gather_food",
+    "mine",
+    "build",
+    "construction_complete",
+    "melee",
+    "arrow",
+    "siege_launch",
+    "siege_impact",
+    "under_attack",
+    "population_blocked",
+    "age_up",
+    "victory",
+    "defeat",
+    "ward_absorb",
+    "ward_break",
+    "giant_step",
+    "gate_mechanism",
+    "worldbreaker_launch",
+    "worldbreaker_impact",
+    "age_up_5",
+    "age_up_6",
+    "age_up_7",
+    "age_up_8"
+  ],
+  "manifestPath": "apps/client/public/asset-manifest.json",
+  "qualification": "Generated geometry, animation recipes, icons and synthesized audio cover the current content catalog. Automated structure checks do not establish exhaustive visual quality or full-match performance; see docs/TESTING.md."
+}

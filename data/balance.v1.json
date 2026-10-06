@@ -1,0 +1,2508 @@
+{
+  "schemaVersion": 1,
+  "status": "PROPOSED_UNBALANCED_INITIAL_CONTENT",
+  "resourceOrder": [
+    "food",
+    "wood",
+    "gold",
+    "stone"
+  ],
+  "ages": [
+    {
+      "id": 1,
+      "name": "Founding Age",
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 0,
+      "requiredAge": null,
+      "prerequisites": []
+    },
+    {
+      "id": 2,
+      "name": "Settlement Age",
+      "cost": {
+        "food": 550,
+        "wood": 0,
+        "gold": 150,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "requiredAge": 1,
+      "prerequisites": [
+        {
+          "kind": "distinct_completed_building_types",
+          "count": 2,
+          "types": [
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "barracks"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Fortress Age",
+      "cost": {
+        "food": 800,
+        "wood": 0,
+        "gold": 300,
+        "stone": 0
+      },
+      "researchSeconds": 120,
+      "requiredAge": 2,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "market",
+            "blacksmith"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Empire Age",
+      "cost": {
+        "food": 1200,
+        "wood": 0,
+        "gold": 600,
+        "stone": 0
+      },
+      "researchSeconds": 160,
+      "requiredAge": 3,
+      "prerequisites": [
+        {
+          "kind": "completed_buildings",
+          "types": [
+            "siege_workshop",
+            "university"
+          ]
+        }
+      ]
+    }
+  ],
+  "units": [
+    {
+      "id": "villager",
+      "name": "Villager",
+      "minAge": 1,
+      "producedAt": "town_center",
+      "cost": {
+        "food": 50,
+        "wood": 0,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 35,
+      "attack": 3,
+      "attackType": "melee",
+      "rangeM": 1.5,
+      "minRangeM": 0,
+      "moveSpeedMps": 3,
+      "trainSeconds": 20,
+      "population": 1,
+      "visionM": 9,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "worker",
+        "light",
+        "melee"
+      ],
+      "collisionRadiusM": 0.35,
+      "projectileSpeedMps": 0,
+      "canGarrison": true,
+      "carryCapacity": 10
+    },
+    {
+      "id": "scout",
+      "name": "Scout",
+      "minAge": 1,
+      "producedAt": "town_center",
+      "cost": {
+        "food": 80,
+        "wood": 0,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 45,
+      "attack": 3,
+      "attackType": "melee",
+      "rangeM": 1.5,
+      "minRangeM": 0,
+      "moveSpeedMps": 6,
+      "trainSeconds": 25,
+      "population": 1,
+      "visionM": 16,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "cavalry",
+        "light",
+        "melee"
+      ],
+      "collisionRadiusM": 0.55,
+      "projectileSpeedMps": 0,
+      "canGarrison": true
+    },
+    {
+      "id": "militia",
+      "name": "Militia",
+      "minAge": 1,
+      "producedAt": "barracks",
+      "cost": {
+        "food": 60,
+        "wood": 0,
+        "gold": 20,
+        "stone": 0
+      },
+      "maxHp": 55,
+      "attack": 6,
+      "attackType": "melee",
+      "rangeM": 1.5,
+      "minRangeM": 0,
+      "moveSpeedMps": 3,
+      "trainSeconds": 25,
+      "population": 1,
+      "visionM": 10,
+      "armor": {
+        "melee": 0,
+        "pierce": 1,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "infantry",
+        "melee"
+      ],
+      "collisionRadiusM": 0.35,
+      "projectileSpeedMps": 0,
+      "canGarrison": true
+    },
+    {
+      "id": "spearman",
+      "name": "Spearman",
+      "minAge": 1,
+      "producedAt": "barracks",
+      "cost": {
+        "food": 50,
+        "wood": 25,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 45,
+      "attack": 4,
+      "attackType": "melee",
+      "rangeM": 1.8,
+      "minRangeM": 0,
+      "moveSpeedMps": 3,
+      "trainSeconds": 22,
+      "population": 1,
+      "visionM": 10,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {
+        "cavalry": 16
+      },
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "infantry",
+        "melee",
+        "anti_cavalry"
+      ],
+      "collisionRadiusM": 0.35,
+      "projectileSpeedMps": 0,
+      "canGarrison": true
+    },
+    {
+      "id": "archer",
+      "name": "Archer",
+      "minAge": 2,
+      "producedAt": "archery_range",
+      "cost": {
+        "food": 0,
+        "wood": 25,
+        "gold": 45,
+        "stone": 0
+      },
+      "maxHp": 35,
+      "attack": 4,
+      "attackType": "pierce",
+      "rangeM": 6,
+      "minRangeM": 0,
+      "moveSpeedMps": 3.2,
+      "trainSeconds": 28,
+      "population": 1,
+      "visionM": 10,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "archer",
+        "ranged",
+        "light"
+      ],
+      "collisionRadiusM": 0.35,
+      "projectileSpeedMps": 22,
+      "canGarrison": true
+    },
+    {
+      "id": "skirmisher",
+      "name": "Skirmisher",
+      "minAge": 2,
+      "producedAt": "archery_range",
+      "cost": {
+        "food": 35,
+        "wood": 35,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 40,
+      "attack": 3,
+      "attackType": "pierce",
+      "rangeM": 5,
+      "minRangeM": 0,
+      "moveSpeedMps": 3.1,
+      "trainSeconds": 26,
+      "population": 1,
+      "visionM": 10,
+      "armor": {
+        "melee": 0,
+        "pierce": 3,
+        "crush": 0
+      },
+      "bonusDamage": {
+        "archer": 5
+      },
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "ranged",
+        "light",
+        "anti_archer"
+      ],
+      "collisionRadiusM": 0.35,
+      "projectileSpeedMps": 22,
+      "canGarrison": true
+    },
+    {
+      "id": "light_cavalry",
+      "name": "Light Cavalry",
+      "minAge": 2,
+      "producedAt": "stable",
+      "cost": {
+        "food": 80,
+        "wood": 0,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 70,
+      "attack": 6,
+      "attackType": "melee",
+      "rangeM": 1.5,
+      "minRangeM": 0,
+      "moveSpeedMps": 5.5,
+      "trainSeconds": 35,
+      "population": 1,
+      "visionM": 12,
+      "armor": {
+        "melee": 0,
+        "pierce": 1,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "cavalry",
+        "melee"
+      ],
+      "collisionRadiusM": 0.55,
+      "projectileSpeedMps": 0,
+      "canGarrison": true
+    },
+    {
+      "id": "knight",
+      "name": "Knight",
+      "minAge": 3,
+      "producedAt": "stable",
+      "cost": {
+        "food": 60,
+        "wood": 0,
+        "gold": 75,
+        "stone": 0
+      },
+      "maxHp": 110,
+      "attack": 10,
+      "attackType": "melee",
+      "rangeM": 1.5,
+      "minRangeM": 0,
+      "moveSpeedMps": 5,
+      "trainSeconds": 40,
+      "population": 2,
+      "visionM": 10,
+      "armor": {
+        "melee": 2,
+        "pierce": 2,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 1.8,
+      "tags": [
+        "cavalry",
+        "melee",
+        "armored"
+      ],
+      "collisionRadiusM": 0.55,
+      "projectileSpeedMps": 0,
+      "canGarrison": true
+    },
+    {
+      "id": "battering_ram",
+      "name": "Battering Ram",
+      "minAge": 3,
+      "producedAt": "siege_workshop",
+      "cost": {
+        "food": 0,
+        "wood": 160,
+        "gold": 75,
+        "stone": 0
+      },
+      "maxHp": 200,
+      "attack": 35,
+      "attackType": "crush",
+      "rangeM": 1.8,
+      "minRangeM": 0,
+      "moveSpeedMps": 1.5,
+      "trainSeconds": 50,
+      "population": 3,
+      "visionM": 8,
+      "armor": {
+        "melee": 0,
+        "pierce": 8,
+        "crush": 0
+      },
+      "bonusDamage": {
+        "building": 80
+      },
+      "attackCooldownSeconds": 3,
+      "tags": [
+        "siege",
+        "melee",
+        "anti_building"
+      ],
+      "collisionRadiusM": 0.85,
+      "projectileSpeedMps": 0,
+      "canGarrison": false
+    },
+    {
+      "id": "catapult",
+      "name": "Catapult",
+      "minAge": 3,
+      "producedAt": "siege_workshop",
+      "cost": {
+        "food": 0,
+        "wood": 180,
+        "gold": 120,
+        "stone": 0
+      },
+      "maxHp": 120,
+      "attack": 40,
+      "attackType": "crush",
+      "rangeM": 9,
+      "minRangeM": 3,
+      "moveSpeedMps": 1.5,
+      "trainSeconds": 55,
+      "population": 3,
+      "visionM": 12,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {},
+      "attackCooldownSeconds": 5,
+      "tags": [
+        "siege",
+        "ranged",
+        "area_attack"
+      ],
+      "collisionRadiusM": 0.85,
+      "projectileSpeedMps": 12,
+      "canGarrison": false,
+      "areaDamageBands": [
+        {
+          "radiusM": 1,
+          "multiplier": 1
+        },
+        {
+          "radiusM": 2,
+          "multiplier": 0.5
+        }
+      ]
+    },
+    {
+      "id": "trebuchet",
+      "name": "Trebuchet",
+      "minAge": 4,
+      "producedAt": "siege_workshop",
+      "cost": {
+        "food": 0,
+        "wood": 250,
+        "gold": 200,
+        "stone": 0
+      },
+      "maxHp": 150,
+      "attack": 100,
+      "attackType": "crush",
+      "rangeM": 18,
+      "minRangeM": 6,
+      "moveSpeedMps": 1.3,
+      "trainSeconds": 70,
+      "population": 4,
+      "visionM": 14,
+      "armor": {
+        "melee": 0,
+        "pierce": 0,
+        "crush": 0
+      },
+      "bonusDamage": {
+        "building": 100
+      },
+      "attackCooldownSeconds": 6,
+      "tags": [
+        "siege",
+        "ranged",
+        "anti_building"
+      ],
+      "collisionRadiusM": 0.85,
+      "projectileSpeedMps": 12,
+      "canGarrison": false,
+      "deploySeconds": 4,
+      "packSeconds": 3,
+      "areaDamageBands": [
+        {
+          "radiusM": 1,
+          "multiplier": 1
+        }
+      ]
+    }
+  ],
+  "buildings": [
+    {
+      "id": "town_center",
+      "name": "Town Center",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 400,
+        "gold": 0,
+        "stone": 300
+      },
+      "maxHp": 2400,
+      "buildSeconds": 120,
+      "footprintCells": [
+        6,
+        6
+      ],
+      "populationProvided": 10,
+      "visionM": 18,
+      "garrisonCapacity": 15,
+      "dropOffResources": [
+        "food",
+        "wood",
+        "gold",
+        "stone"
+      ],
+      "attack": 10,
+      "attackType": "pierce",
+      "rangeM": 8,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "maxPerPlayerByAge": {
+        "1": 1,
+        "2": 1,
+        "3": 3,
+        "4": 4
+      },
+      "produces": [
+        "villager",
+        "scout"
+      ]
+    },
+    {
+      "id": "house",
+      "name": "House",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 30,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 600,
+      "buildSeconds": 25,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "populationProvided": 5,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "mill",
+      "name": "Mill",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 100,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 800,
+      "buildSeconds": 35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [
+        "food"
+      ],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "lumber_camp",
+      "name": "Lumber Camp",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 100,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 800,
+      "buildSeconds": 35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [
+        "wood"
+      ],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "mining_camp",
+      "name": "Mining Camp",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 100,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 800,
+      "buildSeconds": 35,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [
+        "gold",
+        "stone"
+      ],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "farm",
+      "name": "Farm",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 60,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 350,
+      "buildSeconds": 20,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "populationProvided": 0,
+      "visionM": 4,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "foodCapacity": 350,
+      "maxActiveGatherers": 1,
+      "reseedCost": {
+        "food": 0,
+        "wood": 60,
+        "gold": 0,
+        "stone": 0
+      },
+      "reseedSeconds": 20,
+      "produces": []
+    },
+    {
+      "id": "barracks",
+      "name": "Barracks",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 175,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 1400,
+      "buildSeconds": 60,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [
+        "militia",
+        "spearman"
+      ]
+    },
+    {
+      "id": "archery_range",
+      "name": "Archery Range",
+      "minAge": 2,
+      "cost": {
+        "food": 0,
+        "wood": 175,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 1400,
+      "buildSeconds": 60,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [
+        "archer",
+        "skirmisher"
+      ]
+    },
+    {
+      "id": "stable",
+      "name": "Stable",
+      "minAge": 2,
+      "cost": {
+        "food": 0,
+        "wood": 200,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 1600,
+      "buildSeconds": 65,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [
+        "light_cavalry",
+        "knight"
+      ]
+    },
+    {
+      "id": "blacksmith",
+      "name": "Blacksmith",
+      "minAge": 2,
+      "cost": {
+        "food": 0,
+        "wood": 150,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 1400,
+      "buildSeconds": 50,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "market",
+      "name": "Market",
+      "minAge": 2,
+      "cost": {
+        "food": 0,
+        "wood": 175,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 1500,
+      "buildSeconds": 60,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "siege_workshop",
+      "name": "Siege Workshop",
+      "minAge": 3,
+      "cost": {
+        "food": 0,
+        "wood": 200,
+        "gold": 100,
+        "stone": 0
+      },
+      "maxHp": 1800,
+      "buildSeconds": 70,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": [
+        "battering_ram",
+        "catapult",
+        "trebuchet"
+      ]
+    },
+    {
+      "id": "university",
+      "name": "University",
+      "minAge": 3,
+      "cost": {
+        "food": 0,
+        "wood": 200,
+        "gold": 150,
+        "stone": 0
+      },
+      "maxHp": 1800,
+      "buildSeconds": 70,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "populationProvided": 0,
+      "visionM": 10,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "watchtower",
+      "name": "Watchtower",
+      "minAge": 2,
+      "cost": {
+        "food": 0,
+        "wood": 75,
+        "gold": 0,
+        "stone": 125
+      },
+      "maxHp": 1600,
+      "buildSeconds": 60,
+      "footprintCells": [
+        2,
+        2
+      ],
+      "populationProvided": 0,
+      "visionM": 20,
+      "garrisonCapacity": 5,
+      "dropOffResources": [],
+      "attack": 5,
+      "attackType": "pierce",
+      "rangeM": 8,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "fortress",
+      "name": "Fortress",
+      "minAge": 3,
+      "cost": {
+        "food": 0,
+        "wood": 300,
+        "gold": 0,
+        "stone": 650
+      },
+      "maxHp": 6000,
+      "buildSeconds": 180,
+      "footprintCells": [
+        6,
+        6
+      ],
+      "populationProvided": 0,
+      "visionM": 24,
+      "garrisonCapacity": 20,
+      "dropOffResources": [],
+      "attack": 12,
+      "attackType": "pierce",
+      "rangeM": 10,
+      "attackCooldownSeconds": 2,
+      "projectileSpeedMps": 22,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    },
+    {
+      "id": "palisade_wall",
+      "name": "Palisade Wall",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 5,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 250,
+      "buildSeconds": 8,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "wallEquivalentCells": 1,
+      "produces": []
+    },
+    {
+      "id": "stone_wall",
+      "name": "Stone Wall",
+      "minAge": 3,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 0,
+        "stone": 8
+      },
+      "maxHp": 1500,
+      "buildSeconds": 12,
+      "footprintCells": [
+        1,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 2,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "wallEquivalentCells": 1,
+      "produces": []
+    },
+    {
+      "id": "wooden_gate",
+      "name": "Wooden Gate",
+      "minAge": 1,
+      "cost": {
+        "food": 0,
+        "wood": 20,
+        "gold": 0,
+        "stone": 0
+      },
+      "maxHp": 600,
+      "buildSeconds": 20,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 4,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "wallEquivalentCells": 3,
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 4,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "produces": []
+    },
+    {
+      "id": "stone_gate",
+      "name": "Stone Gate",
+      "minAge": 3,
+      "cost": {
+        "food": 0,
+        "wood": 0,
+        "gold": 0,
+        "stone": 30
+      },
+      "maxHp": 2200,
+      "buildSeconds": 30,
+      "footprintCells": [
+        3,
+        1
+      ],
+      "populationProvided": 0,
+      "visionM": 4,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building",
+        "wall"
+      ],
+      "wallEquivalentCells": 3,
+      "defaultGateMode": "AUTO",
+      "gatePassageWidthM": 4,
+      "autoOpenDistanceM": 6,
+      "autoCloseDelaySeconds": 2,
+      "produces": []
+    },
+    {
+      "id": "monument",
+      "name": "Monument",
+      "minAge": 4,
+      "cost": {
+        "food": 0,
+        "wood": 1000,
+        "gold": 1000,
+        "stone": 1000
+      },
+      "maxHp": 8000,
+      "buildSeconds": 240,
+      "footprintCells": [
+        8,
+        8
+      ],
+      "populationProvided": 0,
+      "visionM": 16,
+      "garrisonCapacity": 0,
+      "dropOffResources": [],
+      "attack": 0,
+      "attackType": null,
+      "rangeM": 0,
+      "attackCooldownSeconds": 0,
+      "projectileSpeedMps": 0,
+      "armor": {
+        "melee": 4,
+        "pierce": 8,
+        "crush": 0
+      },
+      "tags": [
+        "building"
+      ],
+      "produces": []
+    }
+  ],
+  "technologies": [
+    {
+      "id": "forestry_1",
+      "name": "Forestry 1",
+      "minAge": 2,
+      "researchedAt": "lumber_camp",
+      "cost": {
+        "food": 100,
+        "wood": 50,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 40,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "forestry_2",
+      "name": "Forestry 2",
+      "minAge": 3,
+      "researchedAt": "lumber_camp",
+      "cost": {
+        "food": 150,
+        "wood": 100,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 50,
+      "prerequisites": [
+        "forestry_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "forestry_3",
+      "name": "Forestry 3",
+      "minAge": 4,
+      "researchedAt": "lumber_camp",
+      "cost": {
+        "food": 200,
+        "wood": 150,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [
+        "forestry_2"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.wood",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "mining_1",
+      "name": "Mining 1",
+      "minAge": 2,
+      "researchedAt": "mining_camp",
+      "cost": {
+        "food": 100,
+        "wood": 75,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "mining_2",
+      "name": "Mining 2",
+      "minAge": 3,
+      "researchedAt": "mining_camp",
+      "cost": {
+        "food": 200,
+        "wood": 150,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 55,
+      "prerequisites": [
+        "mining_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.gold",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.stone",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "wheelbarrow",
+      "name": "Wheelbarrow",
+      "minAge": 2,
+      "researchedAt": "town_center",
+      "cost": {
+        "food": 150,
+        "wood": 50,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "moveSpeedMps",
+          "operation": "add",
+          "value": 0.3
+        }
+      ]
+    },
+    {
+      "id": "hand_cart",
+      "name": "Hand Cart",
+      "minAge": 3,
+      "researchedAt": "town_center",
+      "cost": {
+        "food": 300,
+        "wood": 150,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 80,
+      "prerequisites": [
+        "wheelbarrow"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "carryCapacity",
+          "operation": "add",
+          "value": 10
+        },
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "moveSpeedMps",
+          "operation": "add",
+          "value": 0.3
+        }
+      ]
+    },
+    {
+      "id": "farming_1",
+      "name": "Farming 1",
+      "minAge": 2,
+      "researchedAt": "mill",
+      "cost": {
+        "food": 75,
+        "wood": 75,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "farming_2",
+      "name": "Farming 2",
+      "minAge": 3,
+      "researchedAt": "mill",
+      "cost": {
+        "food": 150,
+        "wood": 125,
+        "gold": 0,
+        "stone": 0
+      },
+      "researchSeconds": 55,
+      "prerequisites": [
+        "farming_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "villager"
+          ],
+          "stat": "gatherRate.farm",
+          "operation": "add_base_fraction",
+          "value": 0.15
+        }
+      ]
+    },
+    {
+      "id": "forging_1",
+      "name": "Forging 1",
+      "minAge": 2,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 100,
+        "wood": 0,
+        "gold": 50,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "forging_2",
+      "name": "Forging 2",
+      "minAge": 3,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [
+        "forging_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "forging_3",
+      "name": "Forging 3",
+      "minAge": 4,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 250,
+        "wood": 0,
+        "gold": 150,
+        "stone": 0
+      },
+      "researchSeconds": 75,
+      "prerequisites": [
+        "forging_2"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "fletching_1",
+      "name": "Fletching 1",
+      "minAge": 2,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 100,
+        "wood": 0,
+        "gold": 50,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "rangeM",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "fletching_2",
+      "name": "Fletching 2",
+      "minAge": 3,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [
+        "fletching_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "rangeM",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "fletching_3",
+      "name": "Fletching 3",
+      "minAge": 4,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 250,
+        "wood": 0,
+        "gold": 150,
+        "stone": 0
+      },
+      "researchSeconds": 75,
+      "prerequisites": [
+        "fletching_2"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "rangeM",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "melee_armor_1",
+      "name": "Melee Armor 1",
+      "minAge": 2,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 75,
+        "wood": 0,
+        "gold": 50,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "melee_armor_2",
+      "name": "Melee Armor 2",
+      "minAge": 3,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [
+        "melee_armor_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "melee_armor_3",
+      "name": "Melee Armor 3",
+      "minAge": 4,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 225,
+        "wood": 0,
+        "gold": 150,
+        "stone": 0
+      },
+      "researchSeconds": 75,
+      "prerequisites": [
+        "melee_armor_2"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "militia",
+            "spearman",
+            "scout",
+            "light_cavalry",
+            "knight"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ranged_armor_1",
+      "name": "Ranged Armor 1",
+      "minAge": 2,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 75,
+        "wood": 0,
+        "gold": 50,
+        "stone": 0
+      },
+      "researchSeconds": 45,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ranged_armor_2",
+      "name": "Ranged Armor 2",
+      "minAge": 3,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [
+        "ranged_armor_1"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "ranged_armor_3",
+      "name": "Ranged Armor 3",
+      "minAge": 4,
+      "researchedAt": "blacksmith",
+      "cost": {
+        "food": 225,
+        "wood": 0,
+        "gold": 150,
+        "stone": 0
+      },
+      "researchSeconds": 75,
+      "prerequisites": [
+        "ranged_armor_2"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "archer",
+            "skirmisher"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "veteran_militia",
+      "name": "Veteran Militia",
+      "minAge": 3,
+      "researchedAt": "barracks",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "militia"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 15
+        },
+        {
+          "targets": [
+            "militia"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "elite_militia",
+      "name": "Elite Militia",
+      "minAge": 4,
+      "researchedAt": "barracks",
+      "cost": {
+        "food": 300,
+        "wood": 0,
+        "gold": 200,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "prerequisites": [
+        "veteran_militia"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "militia"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 15
+        },
+        {
+          "targets": [
+            "militia"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "veteran_spearman",
+      "name": "Veteran Spearmen",
+      "minAge": 3,
+      "researchedAt": "barracks",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 10
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 2
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "elite_spearman",
+      "name": "Elite Spearmen",
+      "minAge": 4,
+      "researchedAt": "barracks",
+      "cost": {
+        "food": 300,
+        "wood": 0,
+        "gold": 200,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "prerequisites": [
+        "veteran_spearman"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 10
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 2
+        },
+        {
+          "targets": [
+            "spearman"
+          ],
+          "stat": "bonusDamage.cavalry",
+          "operation": "add",
+          "value": 4
+        }
+      ]
+    },
+    {
+      "id": "veteran_archer",
+      "name": "Veteran Archers",
+      "minAge": 3,
+      "researchedAt": "archery_range",
+      "cost": {
+        "food": 150,
+        "wood": 0,
+        "gold": 100,
+        "stone": 0
+      },
+      "researchSeconds": 60,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "archer"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "archer"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "elite_archer",
+      "name": "Elite Archers",
+      "minAge": 4,
+      "researchedAt": "archery_range",
+      "cost": {
+        "food": 300,
+        "wood": 0,
+        "gold": 200,
+        "stone": 0
+      },
+      "researchSeconds": 90,
+      "prerequisites": [
+        "veteran_archer"
+      ],
+      "effects": [
+        {
+          "targets": [
+            "archer"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 5
+        },
+        {
+          "targets": [
+            "archer"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    },
+    {
+      "id": "elite_knight",
+      "name": "Elite Knights",
+      "minAge": 4,
+      "researchedAt": "stable",
+      "cost": {
+        "food": 400,
+        "wood": 0,
+        "gold": 300,
+        "stone": 0
+      },
+      "researchSeconds": 100,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "knight"
+          ],
+          "stat": "maxHp",
+          "operation": "add",
+          "value": 30
+        },
+        {
+          "targets": [
+            "knight"
+          ],
+          "stat": "attack",
+          "operation": "add",
+          "value": 2
+        }
+      ]
+    },
+    {
+      "id": "masonry",
+      "name": "Masonry",
+      "minAge": 3,
+      "researchedAt": "university",
+      "cost": {
+        "food": 200,
+        "wood": 0,
+        "gold": 0,
+        "stone": 150
+      },
+      "researchSeconds": 75,
+      "prerequisites": [],
+      "effects": [
+        {
+          "targets": [
+            "town_center",
+            "house",
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "farm",
+            "barracks",
+            "archery_range",
+            "stable",
+            "blacksmith",
+            "market",
+            "siege_workshop",
+            "university",
+            "watchtower",
+            "fortress",
+            "palisade_wall",
+            "stone_wall",
+            "wooden_gate",
+            "stone_gate",
+            "monument"
+          ],
+          "stat": "maxHp",
+          "operation": "add_base_fraction",
+          "value": 0.2
+        },
+        {
+          "targets": [
+            "town_center",
+            "house",
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "farm",
+            "barracks",
+            "archery_range",
+            "stable",
+            "blacksmith",
+            "market",
+            "siege_workshop",
+            "university",
+            "watchtower",
+            "fortress",
+            "palisade_wall",
+            "stone_wall",
+            "wooden_gate",
+            "stone_gate",
+            "monument"
+          ],
+          "stat": "armor.melee",
+          "operation": "add",
+          "value": 1
+        },
+        {
+          "targets": [
+            "town_center",
+            "house",
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "farm",
+            "barracks",
+            "archery_range",
+            "stable",
+            "blacksmith",
+            "market",
+            "siege_workshop",
+            "university",
+            "watchtower",
+            "fortress",
+            "palisade_wall",
+            "stone_wall",
+            "wooden_gate",
+            "stone_gate",
+            "monument"
+          ],
+          "stat": "armor.pierce",
+          "operation": "add",
+          "value": 1
+        }
+      ]
+    }
+  ],
+  "rules": {
+    "simulationHz": 20,
+    "authoritativeFrameMs": 300,
+    "replicationHz": 10,
+    "remoteHumanLimit": 5,
+    "hostPlayerLimit": 1,
+    "aiLimit": 5,
+    "factionLimit": 11,
+    "defaultPopulationLimit": 120,
+    "populationOptions": [
+      80,
+      120,
+      200
+    ],
+    "buildingGridM": 2,
+    "treeBuildingClearanceM": 3.2,
+    "nonTreeBuildingClearanceM": 3.2,
+    "navigationGridM": 1,
+    "fogGridM": 2,
+    "combatAcquisitionRadiusM": 12,
+    "idleGatherRadiusM": 12,
+    "resourceScale": 1000,
+    "positionUnitsPerM": 1000,
+    "queueWaitingLimit": 5,
+    "orderQueueLimit": 16,
+    "maxWallSegmentsPerCommand": 64,
+    "maxNonWallBuildingsPerPlayer": 800,
+    "maxWallEquivalentCellsPerPlayer": 1600,
+    "maxResourceNodes": 32000,
+    "constructionWorkerMultipliers": [
+      1,
+      1.6,
+      2.1,
+      2.5,
+      2.8
+    ],
+    "foundationStartingHpFraction": 0.1,
+    "unfinishedCancelRefundFraction": 0.75,
+    "startedJobRemainingRefundFraction": 0.75,
+    "repairHpPerWorkerSecond": 10,
+    "repairFullHpCostFraction": 0.5,
+    "monumentHoldSeconds": 600,
+    "carryCapacity": 10,
+    "garrisonHealHpPerSecond": 1,
+    "garrisonEjectionDamageFraction": 0.25,
+    "demolitionSeconds": 3,
+    "gatherPerWorkingSecond": {
+      "forage": 0.7,
+      "farm": 0.75,
+      "wood": 0.65,
+      "gold": 0.6,
+      "stone": 0.6
+    },
+    "market": {
+      "tradeLot": 100,
+      "sellGold": 60,
+      "buyGold": 130,
+      "tributeFeeFraction": 0.1
+    }
+  },
+  "start": {
+    "age": 1,
+    "resources": {
+      "food": 200,
+      "wood": 250,
+      "gold": 100,
+      "stone": 150
+    },
+    "units": {
+      "villager": 6,
+      "scout": 1
+    },
+    "buildings": {
+      "town_center": 1,
+      "house": 1
+    }
+  },
+  "maps": {
+    "types": [
+      "open_frontier",
+      "river_divide"
+    ],
+    "sizes": [
+      {
+        "id": "small",
+        "cells": [
+          192,
+          192
+        ],
+        "factions": [
+          2,
+          4
+        ]
+      },
+      {
+        "id": "medium",
+        "cells": [
+          256,
+          256
+        ],
+        "factions": [
+          5,
+          8
+        ]
+      },
+      {
+        "id": "large",
+        "cells": [
+          320,
+          320
+        ],
+        "factions": [
+          9,
+          11
+        ]
+      }
+    ],
+    "spawnResourceMinimum": {
+      "food": 12000,
+      "wood": 30000,
+      "gold": 15000,
+      "stone": 10000
+    },
+    "resourceNodes": {
+      "starting": { "food": 60, "wood": 300, "gold": 50, "stone": 50 },
+      "expansion": { "food": 40, "wood": 120, "gold": 40, "stone": 40 },
+      "forestPatchLimit": 30
+    },
+    "maxGenerationAttempts": 50,
+    "startingTravelVariationFraction": 0.15,
+    "forestNavigationCellM": 3,
+    "forestBelts": {
+      "targetDepthM": 24,
+      "minimumDepthM": 18,
+      "maximumDepthM": 30,
+      "minimumOpenings": 2,
+      "preferredOpenings": 3,
+      "approachLengthM": 24,
+      "territoryCellsBySize": { "small": 2, "medium": 3, "large": 4 }
+    },
+    "naturalBarriers": {
+      "minimumRouteWidthM": 32,
+      "valleyWidthM": 48,
+      "stagingRegionM": 56,
+      "minimumStartSeparationM": 128,
+      "ridgeHeightM": 18
+    }
+  },
+  "ai": {
+    "maxConcurrent": 5,
+    "timeoutSeconds": 45,
+    "maxObservationAgeSeconds": 60,
+    "goalTtlSeconds": 90,
+    "maxGoals": 8,
+    "maxOutputTokens": 512,
+    "targetOutputTokens": 300,
+    "maxAdaptiveIntervalSeconds": 120,
+    "personalities": [
+      "builder",
+      "raider",
+      "marshal",
+      "steward",
+      "diplomat"
+    ],
+    "rulePolicies": {
+      "easy": { "targetWorkers": 12, "housingBuffer": 2, "workerReserve": 1, "scoutIntervalSeconds": 60, "retreatHpFraction": 0.2, "baseTargetsByAge": [1, 1, 1, 1], "armyTargetsByAge": [4, 8, 12, 16] },
+      "medium": { "targetWorkers": 20, "housingBuffer": 3, "workerReserve": 1, "scoutIntervalSeconds": 20, "retreatHpFraction": 0.55, "baseTargetsByAge": [1, 1, 2, 2], "armyTargetsByAge": [6, 12, 20, 28] },
+      "hard": { "targetWorkers": 36, "housingBuffer": 5, "workerReserve": 2, "scoutIntervalSeconds": 8, "retreatHpFraction": 0.65, "baseTargetsByAge": [1, 1, 2, 3], "armyTargetsByAge": [8, 18, 30, 44] }
+    },
+    "personalityPolicies": {
+      "builder": { "resourceWeights": { "food": 35, "wood": 40, "gold": 15, "stone": 10 }, "preferredUnits": ["spearman", "archer", "battering_ram"], "infrastructure": ["lumber_camp", "barracks", "watchtower", "university"], "assistAllies": false, "fortify": true, "raid": false },
+      "raider": { "resourceWeights": { "food": 45, "wood": 20, "gold": 30, "stone": 5 }, "preferredUnits": ["light_cavalry", "knight", "militia"], "infrastructure": ["stable", "barracks", "blacksmith"], "assistAllies": false, "fortify": false, "raid": true },
+      "marshal": { "resourceWeights": { "food": 40, "wood": 25, "gold": 25, "stone": 10 }, "preferredUnits": ["militia", "archer", "battering_ram", "catapult", "trebuchet"], "infrastructure": ["barracks", "archery_range", "siege_workshop", "blacksmith"], "assistAllies": true, "fortify": false, "raid": false },
+      "steward": { "resourceWeights": { "food": 50, "wood": 30, "gold": 15, "stone": 5 }, "preferredUnits": ["spearman", "skirmisher", "archer"], "infrastructure": ["mill", "lumber_camp", "mining_camp", "market", "university"], "assistAllies": false, "fortify": false, "raid": false },
+      "diplomat": { "resourceWeights": { "food": 40, "wood": 30, "gold": 20, "stone": 10 }, "preferredUnits": ["spearman", "archer", "light_cavalry"], "infrastructure": ["market", "barracks", "archery_range"], "assistAllies": true, "fortify": false, "raid": false }
+    },
+    "difficulty": {
+      "easy": {
+        "strategicIntervalSeconds": 60,
+        "tacticalIntervalSeconds": 1,
+        "reactionDelaySeconds": 2,
+        "initialBaseAssaultNotBeforeSeconds": 480,
+        "resourceMultiplier": 1,
+        "damageMultiplier": 1,
+        "omniscient": false
+      },
+      "medium": {
+        "strategicIntervalSeconds": 45,
+        "tacticalIntervalSeconds": 0.5,
+        "reactionDelaySeconds": 0.8,
+        "initialBaseAssaultNotBeforeSeconds": 0,
+        "resourceMultiplier": 1,
+        "damageMultiplier": 1,
+        "omniscient": false
+      },
+      "hard": {
+        "strategicIntervalSeconds": 30,
+        "tacticalIntervalSeconds": 0.25,
+        "reactionDelaySeconds": 0.25,
+        "initialBaseAssaultNotBeforeSeconds": 0,
+        "resourceMultiplier": 1,
+        "damageMultiplier": 1,
+        "omniscient": false
+      }
+    }
+  }
+}

@@ -1,0 +1,478 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "observationId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 96,
+      "pattern": "^[A-Za-z0-9_-]+$"
+    },
+    "strategy": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 160
+    },
+    "goals": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/economy"
+          },
+          {
+            "$ref": "#/$defs/ensure_building"
+          },
+          {
+            "$ref": "#/$defs/ensure_units"
+          },
+          {
+            "$ref": "#/$defs/research"
+          },
+          {
+            "$ref": "#/$defs/advance_age"
+          },
+          {
+            "$ref": "#/$defs/develop"
+          },
+          {
+            "$ref": "#/$defs/army_order"
+          },
+          {
+            "$ref": "#/$defs/scout"
+          },
+          {
+            "$ref": "#/$defs/fortify"
+          },
+          {
+            "$ref": "#/$defs/tribute"
+          }
+        ]
+      },
+      "minItems": 0,
+      "maxItems": 8
+    },
+    "message": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "recipientRef": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 96,
+              "pattern": "^[A-Za-z0-9_-]+$"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 240
+            }
+          },
+          "required": [
+            "recipientRef",
+            "text"
+          ]
+        }
+      ]
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "observationId",
+    "strategy",
+    "goals",
+    "message"
+  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:frontier-sovereigns:ai-plan:v1",
+  "title": "AI strategic plan v1",
+  "$defs": {
+    "economy": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "economy"
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "food": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "wood": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "gold": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            },
+            "stone": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100
+            }
+          },
+          "required": [
+            "food",
+            "wood",
+            "gold",
+            "stone"
+          ]
+        },
+        "targetVillagers": {
+          "type": "integer",
+          "minimum": 6,
+          "maximum": 150
+        }
+      },
+      "required": [
+        "kind",
+        "weights",
+        "targetVillagers"
+      ]
+    },
+    "ensure_building": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ensure_building"
+        },
+        "buildingType": {
+          "type": "string",
+          "enum": [
+            "town_center",
+            "house",
+            "mill",
+            "lumber_camp",
+            "mining_camp",
+            "farm",
+            "barracks",
+            "archery_range",
+            "stable",
+            "blacksmith",
+            "market",
+            "siege_workshop",
+            "university",
+            "watchtower",
+            "fortress",
+            "monument",
+            "grand_citadel",
+            "runic_citadel",
+            "titan_citadel",
+            "eternal_citadel",
+            "great_siege_yard",
+            "rune_forge",
+            "ward_spire"
+          ]
+        },
+        "targetCount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 80
+        },
+        "anchorRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "buildingType",
+        "targetCount",
+        "anchorRef"
+      ]
+    },
+    "ensure_units": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "ensure_units"
+        },
+        "unitType": {
+          "type": "string",
+          "enum": [
+            "villager",
+            "scout",
+            "militia",
+            "spearman",
+            "archer",
+            "skirmisher",
+            "light_cavalry",
+            "knight",
+            "battering_ram",
+            "catapult",
+            "trebuchet",
+            "ironhide_ram",
+            "warwolf_trebuchet",
+            "rune_catapult",
+            "wardbreaker_ballista",
+            "colossus_ram",
+            "stone_warden",
+            "worldbreaker_trebuchet",
+            "crown_colossus"
+          ]
+        },
+        "targetCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 200
+        }
+      },
+      "required": [
+        "kind",
+        "unitType",
+        "targetCount"
+      ]
+    },
+    "research": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "research"
+        },
+        "technologyId": {
+          "type": "string",
+          "enum": [
+            "forestry_1",
+            "forestry_2",
+            "forestry_3",
+            "mining_1",
+            "mining_2",
+            "wheelbarrow",
+            "hand_cart",
+            "farming_1",
+            "farming_2",
+            "forging_1",
+            "forging_2",
+            "forging_3",
+            "fletching_1",
+            "fletching_2",
+            "fletching_3",
+            "melee_armor_1",
+            "melee_armor_2",
+            "melee_armor_3",
+            "ranged_armor_1",
+            "ranged_armor_2",
+            "ranged_armor_3",
+            "veteran_militia",
+            "elite_militia",
+            "veteran_spearman",
+            "elite_spearman",
+            "veteran_archer",
+            "elite_archer",
+            "elite_knight",
+            "masonry",
+            "royal_muster",
+            "citadel_engineering",
+            "guild_stewardship",
+            "runebound_arms",
+            "runic_engineering",
+            "runic_husbandry",
+            "titanforged_arms",
+            "colossal_engineering",
+            "great_estates",
+            "oath_of_eternity",
+            "eternal_engineering",
+            "eternal_stewardship"
+          ]
+        }
+      },
+      "required": [
+        "kind",
+        "technologyId"
+      ]
+    },
+    "advance_age": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "advance_age"
+        },
+        "targetAge": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8
+        }
+      },
+      "required": [
+        "kind",
+        "targetAge"
+      ]
+    },
+    "develop": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "develop"
+        },
+        "targetAge": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 8
+        },
+        "anchorRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "targetAge",
+        "anchorRef"
+      ]
+    },
+    "army_order": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "army_order"
+        },
+        "squadRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "order": {
+          "type": "string",
+          "enum": [
+            "defend",
+            "attack",
+            "raid",
+            "assist",
+            "retreat",
+            "rally"
+          ]
+        },
+        "targetRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "squadRef",
+        "order",
+        "targetRef"
+      ]
+    },
+    "scout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "scout"
+        },
+        "zoneRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        }
+      },
+      "required": [
+        "kind",
+        "zoneRef"
+      ]
+    },
+    "fortify": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "fortify"
+        },
+        "anchorRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "material": {
+          "type": "string",
+          "enum": [
+            "palisade",
+            "stone",
+            "bastion",
+            "runestone",
+            "titan",
+            "eternal"
+          ]
+        },
+        "radiusM": {
+          "type": "integer",
+          "minimum": 18,
+          "maximum": 60
+        }
+      },
+      "required": [
+        "kind",
+        "anchorRef",
+        "material",
+        "radiusM"
+      ]
+    },
+    "tribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "tribute"
+        },
+        "allyRef": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 96,
+          "pattern": "^[A-Za-z0-9_-]+$"
+        },
+        "resource": {
+          "type": "string",
+          "enum": [
+            "food",
+            "wood",
+            "gold",
+            "stone"
+          ]
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "kind",
+        "allyRef",
+        "resource",
+        "amount"
+      ]
+    }
+  }
+}

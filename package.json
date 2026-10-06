@@ -1,0 +1,56 @@
+{
+  "name": "frontier-sovereigns",
+  "version": "0.1.0-alpha.1",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.30.3",
+  "engines": {
+    "node": ">=22.23.2 <23"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "corepack pnpm protocol:build && corepack pnpm content:validate && corepack pnpm assets:build && corepack pnpm typecheck && tsx scripts/build.mjs && corepack pnpm --filter @frontier/client build",
+    "protocol:build": "tsx packages/shared/generate-validators.ts",
+    "start": "node --env-file-if-exists=.env dist/server/index.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "corepack pnpm typecheck",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:firefox": "node scripts/firefox-smoke.mjs --run",
+    "test:load": "tsx scripts/load.ts",
+    "test:load:production": "node dist/server/load-profile.js",
+    "test:network-load": "node --env-file-if-exists=.env --import tsx scripts/network-load.ts",
+    "test:network-load:production": "node --env-file-if-exists=.env dist/server/network-profile.js",
+    "test:model": "node --env-file-if-exists=.env --import tsx scripts/model-smoke.ts",
+    "test:fallback": "tsx scripts/fallback-economy.ts",
+    "test:ai-regression": "tsx scripts/ai-regression.ts",
+    "test:ai-regression:production": "node dist/server/ai-regression.js",
+    "test:progression": "tsx scripts/progression.ts",
+    "test:playthrough:rehearsal": "tsx scripts/playthrough-rehearsal.ts",
+    "test:playthrough:rehearsal:production": "node dist/server/playthrough-rehearsal.js",
+    "test:release": "node scripts/release-smoke.mjs --run",
+    "release:prepare": "node scripts/release-smoke.mjs --package",
+    "assets:build": "tsx scripts/assets.ts",
+    "content:validate": "tsx scripts/validate-content.ts"
+  },
+  "dependencies": {
+    "@fastify/cookie": "11.1.2",
+    "@fastify/static": "10.1.2",
+    "ajv": "8.20.0",
+    "fastify": "5.12.5"
+  },
+  "devDependencies": {
+    "@frontier/assets": "workspace:*",
+    "@frontier/shared": "workspace:*",
+    "@frontier/simulation": "workspace:*",
+    "@playwright/test": "1.63.0",
+    "@types/node": "22.19.15",
+    "@types/ws": "8.18.1",
+    "esbuild": "0.28.2",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3",
+    "vitest": "5.0.1",
+    "ws": "8.21.3"
+  },
+  "license": "Apache-2.0"
+}

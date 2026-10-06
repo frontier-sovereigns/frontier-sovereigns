@@ -1,0 +1,19 @@
+{
+  "protocolVersion": 2,
+  "matchId": "match-001",
+  "matchEpoch": 1,
+  "clientCommandId": "cmd-7d94",
+  "clientSequence": 12,
+  "command": {
+    "kind": "move",
+    "unitIds": [
+      "unit-21",
+      "unit-22"
+    ],
+    "target": {
+      "xMm": 42000,
+      "zMm": 30000
+    },
+    "queued": false
+  }
+}

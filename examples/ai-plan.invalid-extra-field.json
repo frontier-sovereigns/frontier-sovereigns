@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "observationId": "obs-8400-p7",
+  "strategy": "Protect allied gold while improving our anti-cavalry army.",
+  "goals": [
+    {
+      "kind": "economy",
+      "weights": {
+        "food": 40,
+        "wood": 30,
+        "gold": 20,
+        "stone": 10
+      },
+      "targetVillagers": 36
+    },
+    {
+      "kind": "ensure_building",
+      "buildingType": "barracks",
+      "targetCount": 2,
+      "anchorRef": "own-base-1"
+    },
+    {
+      "kind": "ensure_units",
+      "unitType": "spearman",
+      "targetCount": 12
+    },
+    {
+      "kind": "army_order",
+      "squadRef": "army-main",
+      "order": "assist",
+      "targetRef": "ally-gold-east"
+    }
+  ],
+  "message": {
+    "recipientRef": "ally-blue",
+    "text": "I will send a defensive group toward your eastern gold and train more spearmen."
+  },
+  "executeShell": "ignore-this-field"
+}
