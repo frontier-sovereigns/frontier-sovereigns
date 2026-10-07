@@ -14,7 +14,7 @@ These images and video support the repository README. They are documentation med
 
 The hero and four screenshots retain the supplied preview's optimized JPEG bytes. The separate crest is copied unchanged from the supplied JPEG. No screenshot was generated, retouched, cropped or otherwise changed by this documentation update. These captures do not establish a benchmark, a specific model matchup or a tested capacity.
 
-The gameplay video is copied byte-for-byte from the supplied recording, without editing or recompression. The README links to the repository file; it is not a hosted GitHub video attachment or an inline player.
+The gameplay video is copied byte-for-byte from the supplied recording, without editing or recompression. The same recording is also uploaded as a [GitHub video attachment](https://github.com/user-attachments/assets/4960f42b-179c-4c35-971a-89eed1dc5899) for the README's inline player. The repository-file link remains available for downloading the original MP4.
 
 ## Licensing and attribution
 

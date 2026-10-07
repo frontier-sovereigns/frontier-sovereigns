@@ -75,6 +75,8 @@ Screenshots from the alpha, with the in-game interface visible. Select an image 
 
 ## Gameplay video
 
+https://github.com/user-attachments/assets/4960f42b-179c-4c35-971a-89eed1dc5899
+
 [Open or download the gameplay recording (MP4, 1:12, 81.9 MiB)](docs/media/readme/frontier-sovereigns.mp4)
 
 Actual alpha gameplay showing an early settlement, villagers gathering resources and building construction, with the in-game interface visible.
