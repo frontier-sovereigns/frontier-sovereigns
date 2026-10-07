@@ -47,3 +47,19 @@ export function MatchStatistics({ view }: { view: PlayerView }) {
     return <details key={record.playerId} open={record.playerId === view.playerId}><summary><span style={{ color: player?.color }}>{player?.name ?? record.playerId}</span><span>{record.unitsTrained} trained · {record.unitsLost} units lost</span></summary><div className="stat-totals"><span>Buildings {record.buildingsBuilt} built / {record.buildingsLost} lost</span><span>{Object.entries(record.ageTicks).map(([age, tick]) => `${ages[Number(age)]?.name}: ${Math.floor(tick / balance.rules.simulationHz / 60)}m ${Math.floor(tick / balance.rules.simulationHz) % 60}s`).join(' · ')}</span>{player?.kind === 'ai' && <span>Model available {totalTicks ? Math.round(record.modelReadyTicks / totalTicks * 100) : 0}% · Fallback {Math.floor(record.fallbackTicks / balance.rules.simulationHz)}s · {record.inferenceFailures} inference failures</span>}</div><table><thead><tr><th>Resource</th><th>Collected</th><th>Spent</th><th>Cargo lost</th></tr></thead><tbody>{balance.resourceOrder.map((resource) => <tr key={resource}><td>{resource}</td><td>{record.collected[resource]}</td><td>{record.spent[resource]}</td><td>{record.lostCargo[resource]}</td></tr>)}</tbody></table></details>;
   })}</div>;
 }
+
+/** Public faction status only; concealed units never affect this readout. */
+export function OpponentStatus({ players, playerId }: Pick<PlayerView, 'players' | 'playerId'>) {
+  const teamId = players.find(player => player.id === playerId)?.teamId;
+  const opponents = players.filter(player => player.id !== playerId && player.teamId !== teamId && !player.defeated);
+  const teams = new Set(opponents.map(player => player.teamId)).size;
+  const teamNumbers = new Map<string, number>();
+  for (const player of players) if (!teamNumbers.has(player.teamId)) teamNumbers.set(player.teamId, teamNumbers.size + 1);
+  return <details className="opponent-status" data-gameplay-hotkeys="suspend">
+    <summary><span>Opponents remaining</span><strong aria-live="polite" aria-atomic="true">{opponents.length} {opponents.length === 1 ? 'faction' : 'factions'} · {teams} {teams === 1 ? 'team' : 'teams'}</strong></summary>
+    <div className="opponent-status-content">
+      <p>Active factions may still have units outside your sight. Victory is confirmed by the match result.</p>
+      <ul aria-label="Faction status">{players.map(player => <li key={player.id}><span>{player.name}<small>{player.id === playerId ? 'You' : player.teamId === teamId ? 'Ally' : 'Opponent'} · Team {teamNumbers.get(player.teamId)}</small></span><strong>{player.defeated ? 'Eliminated' : 'Active'}</strong></li>)}</ul>
+    </div>
+  </details>;
+}

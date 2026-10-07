@@ -3763,11 +3763,42 @@ export class Simulation {
     }
     if(removed){this.wards.advance(this.state,this.liveOwned?this.actors():this.all(),false,this.liveOwned?this.liveStaticRevision:undefined);if(updateVision)this.updateVision();}return removed;
   }
-  private eliminate(playerId:string):void{this.wards.invalidate();this.state.economies[playerId]!.defeated=true;const commander=this.state.controllers[playerId]!;commander.generation++;delete commander.activeRequest;commander.pending=[];for(const e of this.owned(playerId)){if(e.kind==='building'){e.queue=[];this.updateProductionMembership(e);}if(e.kind==='unit'){e.orders=[];this.cancelPath(e);}}}
+  private eliminate(playerId:string):void{this.wards.invalidate();this.state.economies[playerId]!.defeated=true;delete this.state.economies[playerId]!.aiResignationSinceTick;const commander=this.state.controllers[playerId]!;commander.generation++;delete commander.activeRequest;commander.pending=[];for(const e of this.owned(playerId)){if(e.kind==='building'){e.queue=[];this.updateProductionMembership(e);}if(e.kind==='unit'){e.orders=[];this.cancelPath(e);}}}
   private evaluateVictory():void{
-    const survivingFactions=new Set<string>();
-    for(const entity of (this.liveOwned?this.actors():this.all()))if(entity.ownerId!==null&&(entity.kind==='unit'||entity.typeId==='town_center'&&entity.kind==='building'&&!entity.pendingConstruction))survivingFactions.add(entity.ownerId);
+    const survivingFactions=new Set<string>(),scouts=new Map<string,number>(),viable=new Set<string>();
+    for(const faction of this.state.factions)if(faction.kind==='ai'&&!this.state.economies[faction.id]!.defeated)scouts.set(faction.id,0);
+    // Fold resignation into the existing victory census. Native frames keep
+    // using the retained actor roster; no resource, path or fog scan is added.
+    for(const entity of (this.liveOwned?this.actors():this.all())){
+      if(entity.ownerId===null||entity.hp<=0)continue;
+      if(entity.kind==='unit'||entity.typeId==='town_center'&&entity.kind==='building'&&!entity.pendingConstruction)survivingFactions.add(entity.ownerId);
+      if(!scouts.has(entity.ownerId)||viable.has(entity.ownerId))continue;
+      if(entity.kind==='unit'){
+        if(entity.typeId!=='scout')viable.add(entity.ownerId);
+        else{const count=scouts.get(entity.ownerId)!+1;scouts.set(entity.ownerId,count);if(count>balance.ai.resignation.maxScouts)viable.add(entity.ownerId);}
+      }else if(entity.kind==='building'){
+        const definition=buildings[entity.typeId];
+        // Preserve possible recovery/defense, including unfinished and planned
+        // producers. Empty houses, farms, camps and unarmed walls cannot rebuild.
+        if(entity.typeId==='town_center'||entity.typeId==='monument'||definition.produces.length||definition.attack>0)viable.add(entity.ownerId);
+      }
+    }
     for(const f of this.state.factions)if(!this.state.economies[f.id]!.defeated&&!survivingFactions.has(f.id))this.eliminate(f.id);
+    if(this.state.status==='RUNNING'){
+      // A viable teammate (including any human/Pilot/caretaker) protects the
+      // remnant. All-remnant AI teams qualify together, avoiding mutual waits.
+      const protectedTeams=new Set(this.state.factions.filter(f=>!this.state.economies[f.id]!.defeated&&(!scouts.has(f.id)||viable.has(f.id))).map(f=>f.teamId));
+      const due:string[]=[],graceTicks=balance.ai.resignation.graceSeconds*R.simulationHz;
+      for(const faction of this.state.factions){
+        const economy=this.state.economies[faction.id]!;
+        if(economy.defeated||!scouts.has(faction.id)||protectedTeams.has(faction.teamId)){delete economy.aiResignationSinceTick;continue;}
+        economy.aiResignationSinceTick??=this.state.tick;
+        if(this.state.tick-economy.aiResignationSinceTick>=graceTicks)due.push(faction.id);
+      }
+      // Decide the full batch before elimination: opposing remnants whose grace
+      // expires together draw rather than granting victory by iteration order.
+      for(const playerId of due)this.eliminate(playerId);
+    }
     const teams=[...new Set(this.state.factions.filter(f=>!this.state.economies[f.id]!.defeated).map(f=>f.teamId))];
     if(teams.length<=1){this.finish(teams[0]??null,teams.length?'conquest':'simultaneous_elimination');return;}
     if(this.options.monumentVictory){

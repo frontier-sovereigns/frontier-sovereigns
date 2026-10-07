@@ -6,12 +6,49 @@ import { deriveAudioEvents } from './GameAudio';
 import { defaultPreferences, HOTKEYS, heldPanKey, matchesHotkey, rebind, suppressGameplayHotkeys, validPreferences } from './preferences';
 import { isIdleWorker, nextIdleWorker, resolveContextOrder } from './contextOrder';
 import { CommanderRequestDiagnostics, MovementCadenceDiagnostics, FrameDiagnostics, DeliveryDiagnostics } from './EndpointPanel';
+import { OpponentStatus } from './CombatControls';
 
 const entity = (id = 'worker', changes: Partial<ViewEntity> = {}): ViewEntity => ({ id, kind: 'unit', typeId: 'villager', ownerId: 'me', xMm: 10000, zMm: 10000, hp: 50, maxHp: 50, visualAction: { kind: 'idle', startedTick: 0 }, ...changes });
 function view(tick = 10): PlayerView {
   return { protocolVersion: 2, contentHash: 'audio-fixture', matchId: 'match', matchEpoch: 1, tick, sequence: tick, playerId: 'me', status: 'RUNNING', map: { widthMm: 64000, heightMm: 64000, fogCellMm: 2000 }, self: { lastCommandSequence: 0, resources: { food: 200, wood: 250, gold: 100, stone: 150 }, age: 1, population: 7, populationCap: 15, populationLimit: 120, reservedPopulation: 0 }, players: [{ id: 'me', name: 'Host', teamId: 'blue', kind: 'human', color: '#0088ff' }], entities: [entity()], fog: { visible: [], explored: [] }, effects: [] };
 }
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
+
+describe('public opponent status', () => {
+  const render = (players: PlayerView['players'], playerId = 'me') => renderToStaticMarkup(createElement(OpponentStatus, { players, playerId }));
+  const player = (id: string, teamId: string, defeated = false): PlayerView['players'][number] => ({ id, name: id, teamId, defeated, kind: 'ai', color: '#abcdef' });
+
+  it('counts opposing factions and distinct teams while keeping eliminated factions and allies in the roster', () => {
+    const players = [player('me', 'blue'), player('ally', 'blue'), player('fallen ally', 'blue', true), player('north', 'team_Xi15gNPwu1QV'), player('south', 'team_Xi15gNPwu1QV'), player('east', 'green'), player('fallen enemy', 'yellow', true)];
+    const html = render(players);
+    expect(html).toContain('3 factions · 2 teams');
+    expect(html).toContain('<summary>'); expect(html).toContain('aria-live="polite"'); expect(html).toContain('aria-atomic="true"');
+    expect(html).toContain('data-gameplay-hotkeys="suspend"'); expect(html).toContain('aria-label="Faction status"');
+    expect(html).toContain('ally<small>Ally · Team 1</small></span><strong>Active');
+    expect(html).toContain('fallen enemy<small>Opponent · Team 4</small></span><strong>Eliminated');
+    expect(html).toContain('me<small>You · Team 1');
+    expect(html).toContain('north<small>Opponent · Team 2');
+    expect(html).toContain('south<small>Opponent · Team 2');
+    expect(html).not.toContain('team_Xi15gNPwu1QV');
+    expect(render(players, 'fallen ally')).toContain('3 factions · 2 teams');
+  });
+
+  it('keeps an unseen surviving faction active until the host marks it defeated', () => {
+    const current = view();
+    current.entities = [];
+    current.players.push({ ...player('Last <banner>', 'red'), defeated: undefined }, player('fallen enemy', 'green', true));
+    const html = render(current.players);
+    expect(html).toContain('1 faction · 1 team');
+    expect(html).toContain('Last &lt;banner&gt;<small>Opponent · Team 2</small></span><strong>Active');
+    expect(html).toContain('units outside your sight');
+    current.players[1]!.defeated = true;
+    const eliminated = render(current.players);
+    expect(eliminated).toContain('0 factions · 0 teams');
+    expect(eliminated).toContain('Victory is confirmed by the match result.');
+    expect(eliminated).toContain('Last &lt;banner&gt;<small>Opponent · Team 2</small></span><strong>Eliminated');
+    expect(eliminated).toContain('fallen enemy<small>Opponent · Team 3');
+  });
+});
 
 it('labels committed frame timing and nested phase elapsed costs without inventing unreported measurements',()=>{
   expect(renderToStaticMarkup(createElement(FrameDiagnostics,{frame:undefined}))).toBe('');

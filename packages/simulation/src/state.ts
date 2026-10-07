@@ -55,6 +55,8 @@ export interface Notification {id:string;tick:number;code:string;entityId?:strin
 export interface FactionStatistics {unitsTrained:number;unitsLost:number;buildingsBuilt:number;buildingsLost:number;ageTicks:Record<string,number>;fallbackTicks:number;modelReadyTicks:number;inferenceFailures:number}
 export interface Economy {
   resources:ResourceBank;age:number;defeated:boolean;collected:ResourceBank;spent:ResourceBank;lastClientSequence:number;
+  /** Private deterministic grace timer for irrecoverable native-AI remnants. */
+  aiResignationSinceTick?:number;
   autoReseed:boolean;ledger:LedgerEntry[];lostCargo:ResourceBank;notifications:Notification[];
   statistics:FactionStatistics;
   technologies:TechnologyId[];researchRevision:number;

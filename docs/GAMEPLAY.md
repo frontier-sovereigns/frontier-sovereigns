@@ -66,7 +66,11 @@ explicitly held units blocking a site still need an order from their owner.
 
 A completed gate supports AUTO, LOCKED and OPEN. An open passage can admit enemies. Later ages add larger citadels, broader fortifications, wards, siege weapons and colossal units. Deployment, packing, ammunition and support structures impose ordinary costs and tactical constraints; inspect each unit/building's controls and requirements.
 
-For Conquest, a faction is eliminated when it has no surviving unit and no Town Center; the last surviving team wins. The host may also enable Monument victory. The Monument must meet the match's age requirement and remain standing for its hold duration. Team settings, shared vision and victory options are selected in the lobby.
+For Conquest, a faction is eliminated when it has no surviving unit and no Town Center; the last surviving team wins. **Opponents remaining** in the HUD lists active and eliminated factions without revealing hidden units or locations.
+
+A native AI commander also resigns after 120 uninterrupted seconds of game time with at most one Scout, no other units, and no Town Center, recruiting building, armed building or Monument. Unfinished or paid planned strategic buildings also prevent resignation; houses, farms, resource camps and unarmed walls or gates do not. A surviving human teammate or an AI teammate with viable forces or strategic assets prevents this countdown. Recovery resets it, and pausing freezes it. Human players, including those using AI Pilot or a disconnect caretaker, retain their own surrender choice and never auto-surrender under this rule. Normal elimination still applies.
+
+The host may also enable Monument victory. The Monument must meet the match's age requirement and remain standing for its hold duration. Team settings, shared vision and victory options are selected in the lobby.
 
 ## AI and accessibility
 

@@ -2448,6 +2448,7 @@
     }
   },
   "ai": {
+    "resignation": { "graceSeconds": 120, "maxScouts": 1 },
     "maxConcurrent": 5,
     "timeoutSeconds": 45,
     "maxObservationAgeSeconds": 60,

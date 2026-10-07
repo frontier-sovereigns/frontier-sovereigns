@@ -5,7 +5,14 @@ import type { World } from './World';
 export const requestStatusLabel = (status: ChatMessage['status']) => ({ requested: 'Requested', planned: 'Planned', completed: 'Completed', declined: 'Declined', blocked: 'Blocked', expired: 'Expired' }[status ?? 'requested']);
 export const pingLabels: Record<TeamPing['category'], string> = { attack: 'Attack here', defend: 'Defend here', resource: 'Resources here', help: 'Help here' };
 export const pingSymbols: Record<TeamPing['category'], string> = { attack: '\u2694', defend: '\u25c7', resource: '\u25cf', help: '!' };
-export const commanderModeLabel = (mode: 'model' | 'fallback' | undefined) => mode === 'model' ? 'Strategic model active' : 'Strategic model unavailable - rule-based commander active';
+export const commanderModeLabel = (mode: 'model' | 'fallback' | undefined, defeated = false) => defeated ? 'Eliminated' : mode === 'model' ? 'Strategic model active' : 'Strategic model unavailable - rule-based commander active';
+
+export function CommanderSummary({ players, open }: { players: PlayerView['players']; open: () => void }) {
+  const commanders = players.filter(player => player.kind === 'ai');
+  if (!commanders.length) return null;
+  const active = commanders.filter(player => !player.defeated), modelCount = active.filter(player => player.aiMode === 'model').length;
+  return <button className="strategic-mode-summary" onClick={open}>{active.length ? commanderModeLabel(modelCount === active.length ? 'model' : 'fallback') : 'All AI factions eliminated'}<small>{modelCount} model / {active.length - modelCount} rule-based · {commanders.length - active.length} eliminated</small></button>;
+}
 
 export function Communications({ view, session, state, world, close, changed }: { view: PlayerView; session: SessionResponse; state: ChatStateResponse | null; world: World; close: () => void; changed: () => Promise<void> }) {
   const [text, setText] = useState(''), [channel, setChannel] = useState<'all' | 'team'>('team'), [targetAiId, setTargetAiId] = useState('');
@@ -30,7 +37,7 @@ export function Communications({ view, session, state, world, close, changed }: 
   const sendPing = () => void submit('/api/ping', { category, xMm: Math.max(0, Math.min(view.map.widthMm - 1, Math.round(world.camera.target.x * 1000))), zMm: Math.max(0, Math.min(view.map.heightMm - 1, Math.round(world.camera.target.z * 1000))) }, 'Team signal sent at your camera center.');
   return <section className="communications-panel" data-gameplay-hotkeys="suspend" role="dialog" aria-label="Chat and team signals"><header><div><span className="eyebrow">KEEP YOUR COMPANY CLOSE</span><h2>Dispatches</h2></div><button className="quiet-button" aria-label="Close chat and team signals" onClick={close}>Close</button></header>
     <p className="small-copy">Alliances remain fixed. A request becomes completed only after the host confirms its outcome.</p>
-    {!!view.players.some((player) => player.kind === 'ai') && <details className="commander-statuses"><summary>Commander control modes</summary>{view.players.filter((player) => player.kind === 'ai').map((player) => <div key={player.id}><b>{player.name}</b><small>{commanderModeLabel(player.aiMode)}</small></div>)}</details>}
+    {!!view.players.some((player) => player.kind === 'ai') && <details className="commander-statuses"><summary>Commander control modes</summary>{view.players.filter((player) => player.kind === 'ai').map((player) => <div key={player.id}><b>{player.name}</b><small>{commanderModeLabel(player.aiMode, player.defeated)}</small></div>)}</details>}
     {state && <p className="chat-privacy">{state.sendHumanChat ? 'Authorized human chat may be included in model observations.' : 'Human chat stays with players. Free-form text is not sent to the model; use presets to request AI cooperation.'}</p>}
     {error && <p className="recovery-error" role="alert">{error}</p>}{notice && <p className="recovery-notice" role="status">{notice}</p>}
     <div className="chat-history" role="log" aria-label="Recent messages" aria-live="polite" ref={history} onScroll={() => { if (history.current) wasNearEnd.current = history.current.scrollHeight - history.current.scrollTop - history.current.clientHeight < 40; }}>
