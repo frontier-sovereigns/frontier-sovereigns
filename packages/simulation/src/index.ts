@@ -59,7 +59,7 @@ interface NativePhaseRoster {
   gates:Building[];trebuchets:Unit[];mobileHosts:Unit[];farms:Building[];buildings:Building[];
   productionIndexes:Map<Building,number>;production:Uint32Array;
 }
-const phaseRosterCounts={rebuilt:0,gates:0,transitions:0,production:0,farms:0};
+const phaseRosterCounts={rebuilt:0,gates:0,planningGates:0,transitions:0,production:0,farms:0};
 const countPhaseRoster=(key:keyof typeof phaseRosterCounts,amount=1)=>{phaseRosterCounts[key]=Math.min(Number.MAX_SAFE_INTEGER,phaseRosterCounts[key]+amount);};
 const workFlightCounts={prepared:0,used:0};
 const movementRosterCounts={reconciled:0,reused:0,unitsVisited:0};
@@ -890,7 +890,14 @@ export class Simulation {
     if(!(this.pathScheduler instanceof RemotePathScheduler)&&this.state.tick===this.frameStartTick+1)this.lastPathWork=this.frameMeasure('planning',()=>this.pathScheduler.advance(4000,this.state.tick));
     this.advanceMovement(undefined,true);
   }
-  private framePlanningPolicy():string{return JSON.stringify([this.state.factions.map(faction=>[faction.id,faction.teamId,this.state.economies[faction.id]!.defeated]),this.actors().filter((entity):entity is Building=>entity.kind==='building'&&isGate(entity)).map(gate=>[gate.id,gate.ownerId,gate.work>=gate.required,gate.gateMode,Boolean(gate.gateOpen)])]);}
+  private framePlanningPolicy():string{
+    // Native role membership is invalidated for births, deaths and upgrades.
+    // Policy still reads every gate's live fields: completing an AUTO gate or
+    // changing its owner/team can matter without a physical geometry revision.
+    const roster=this.phaseRoster(),gates=roster?.gates??this.actors().filter((entity):entity is Building=>entity.kind==='building'&&isGate(entity));
+    if(roster)countPhaseRoster('planningGates',gates.length);
+    return JSON.stringify([this.state.factions.map(faction=>[faction.id,faction.teamId,this.state.economies[faction.id]!.defeated]),gates.map(gate=>[gate.id,gate.ownerId,gate.work>=gate.required,gate.gateMode,Boolean(gate.gateOpen)])]);
+  }
   /** Flush after the last visibility/contact slice, including a terminal partial
    * frame, before background leases freeze their committed geometry. This must
    * never replenish local-avoidance credits or reuse pre-vision work knowledge. */
@@ -1792,6 +1799,18 @@ export class Simulation {
     if(entity.kind==='unit'){const dx=Math.max(left-entity.xMm,0,entity.xMm-right),dz=Math.max(top-entity.zMm,0,entity.zMm-bottom);return dx*dx+dz*dz<bounds.halfWidth*bounds.halfWidth;}
     return entity.xMm+bounds.halfWidth>left&&entity.xMm-bounds.halfWidth<right&&entity.zMm+bounds.halfHeight>top&&entity.zMm-bounds.halfHeight<bottom;
   }
+  /** Only this worker's paid order, at most one wall batch. Planned sites are
+   * nonphysical, but a builder must leave their footprints before working. */
+  private pendingBuildOverlap(unit:Unit,point:Position=unit):Building|undefined {
+    const order=unit.orders[0];if(order?.kind!=='build')return;
+    const radius=units[unit.typeId].collisionRadiusM*1000;
+    for(const id of order.wallTargets??(order.targetId?[order.targetId]:[])){
+      const site=this.state.entities[id];if(site?.kind!=='building'||site.ownerId!==unit.ownerId||!site.pendingConstruction)continue;
+      const bounds=this.bounds(site),dx=Math.max(0,Math.abs(point.xMm-site.xMm)-bounds.halfWidth),dz=Math.max(0,Math.abs(point.zMm-site.zMm)-bounds.halfHeight);
+      if(dx*dx+dz*dz<radius*radius)return site;
+    }
+    return;
+  }
   /** Only visited after a real worker reaches this paid site. Static geometry
    * is indexed once per structural revision; moving units remain current. */
   private activateConstruction(site:Building):boolean {
@@ -2368,6 +2387,7 @@ export class Simulation {
     const key=target.kind==='unit'?`${target.id}_${Math.round(target.xMm/500)}_${Math.round(target.zMm/500)}`:target.id;
     const reservations=this.reservations(unit.ownerId),legal=(point:Position)=>{
       if(!nav.free(point,radius)||this.occupied(point,radius,unit.id,unit.ownerId)||!reservations.available(unit.id,point,radius))return false;
+      if(this.pendingBuildOverlap(unit,point))return false;
       if(!requireRoute)return true;
       const bounds=this.workBounds(target),surface={xMm:Math.max(target.xMm-bounds.halfWidth,Math.min(target.xMm+bounds.halfWidth,point.xMm)),zMm:Math.max(target.zMm-bounds.halfHeight,Math.min(target.zMm+bounds.halfHeight,point.zMm))};
       // A free arrival slot must also permit work across its short final gap.
@@ -2692,7 +2712,8 @@ export class Simulation {
         if(!this.affordability(playerId,plan.cost))return 'INSUFFICIENT_RESOURCES';this.spend(playerId,plan.cost,1,'fortification');
         for(const id of plan.removeIds)delete this.state.entities[id];if(plan.removeIds.length){this.invalidateEntityRoster(true);this.state.navigationRevision++;}
         const created=plan.create.map(site=>this.addBuilding(playerId,site.typeId,site.position,site.rotation,false,site.pending?{clearanceMm:buildingGap}:undefined));
-        for(const assignment of plan.assignments){const worker=this.state.entities[assignment.workerId] as Unit,ids=[...(assignment.siteIndices.length?assignment.siteIndices.map(index=>created[index]!.id):created.map(site=>site.id)),...plan.existingTargetIds];if(ids.length)this.setOrder(worker,{kind:'build',wallTargets:ids,targetId:ids[0]},command.queued);}return;
+        const allTargets=[...created.map(site=>site.id),...plan.existingTargetIds];
+        for(const assignment of plan.assignments){const worker=this.state.entities[assignment.workerId] as Unit,ids=[...new Set([...assignment.siteIndices.map(index=>created[index]!.id),...allTargets])];if(ids.length)this.setOrder(worker,{kind:'build',wallTargets:ids,targetId:ids[0]},command.queued);}return;
       }
       case 'set_gate_mode':{
         const gate=this.state.entities[command.gateId];if(!gate||gate.kind!=='building'||gate.ownerId!==playerId)return 'INVALID_REFERENCE';if(!isGate(gate)||!this.complete(gate))return 'INVALID_TARGET';gate.gateMode=command.mode;return;
@@ -3020,6 +3041,24 @@ export class Simulation {
     if(this.state.entities[node.id]!==node||node.xMm!==job.targetX||node.zMm!==job.targetZ||this.knownTarget(unit.ownerId,node.id)!==node||node.kind==='resource'&&node.amount<=0||node.kind==='building'&&((node.foodRemaining??0)<=0||node.farmerId!==unit.id)||unit.cargo.amount>=job.capacity||!this.workReachable(unit,node))return false;
     this.task(unit,'gathering');this.commitGatherContact(unit,order,node,job.resource,job.rate,job.capacity);roster.recordContact();return true;
   }
+  /** Reuse the existing four-per-second idle selection, never an all-world
+   * per-tick rescue. Explicit holds and AI Pilot pins remain authoritative. */
+  private assistNearbyWall(worker:Unit):boolean {
+    const assistant=this.state.control[worker.ownerId]?.assistant;
+    if(worker.cargo.amount||assistant?.protectedEntityIds.includes(worker.id))return false;
+    const radius=R.idleGatherRadiusM*1000,targets:Building[]=[],actors=this.coarseFrame?this.actors():this.all();
+    for(const entity of actors)if(entity.kind==='building'&&entity.ownerId===worker.ownerId&&buildings[entity.typeId].wallEquivalentCells&&(!this.complete(entity)||entity.upgrade)&&distance(worker,entity)<=radius&&!(entity.pendingConstruction?.blocked&&this.state.tick<(entity.pendingConstruction.retryAtTick??0))&&!(assistant?.protectedEntityIds.includes(entity.id)&&!Object.hasOwn(assistant.releaseAfterIdle,entity.id)))targets.push(entity);
+    if(!targets.length)return false;
+    targets.sort((a,b)=>distance(worker,a)-distance(worker,b)||a.id.localeCompare(b.id));
+    const unassigned=new Set(targets.map(target=>target.id));
+    // Existing and queued construction retains its crew. Rescue orphaned work
+    // without recruiting every idle villager into an already crowded approach.
+    for(const entity of actors)if(entity.kind==='unit'&&entity.ownerId===worker.ownerId&&entity.hp>0)for(const order of entity.orders)if(order.kind==='build'){
+      if(order.targetId)unassigned.delete(order.targetId);for(const id of order.wallTargets??[])unassigned.delete(id);
+    }
+    const wallTargets=[...unassigned].slice(0,R.maxWallSegmentsPerCommand);if(!wallTargets.length)return false;
+    this.setOrder(worker,{kind:'build',targetId:wallTargets[0],wallTargets},false);return true;
+  }
   private advanceWork():StaticKnowledgeFrame|undefined{
     this.workFrame=this.liveOwned&&this.coarseFrame?{knowledge:this.workKnowledgeForFrame()}:{};try{
     const activeWork=this.prepareActiveWork();
@@ -3028,7 +3067,7 @@ export class Simulation {
     // tick-derived rotating choice is deterministic without an unsaved cursor.
     if(this.state.tick%5===0){
       const idle=(this.coarseFrame?this.actors():this.all()).filter((e):e is Unit=>e.kind==='unit'&&e.typeId==='villager'&&e.autoGather===true&&!e.orders.length&&!e.resourceSearch&&!e.garrisonedIn&&!e.engagement&&e.stance!=='stand_ground'&&e.hp>0&&!this.state.economies[e.ownerId]!.defeated&&(this.options.controllers!==false||this.state.control[e.ownerId]!.mode!=='ai')&&this.state.tick>=(e.autoGatherAtTick??0));
-      const worker=idle[Math.floor(this.state.tick/5)%idle.length];if(worker)this.startResourceSearch(worker,'idle',worker,R.idleGatherRadiusM*1000);
+      const worker=idle[Math.floor(this.state.tick/5)%idle.length];if(worker&&!this.assistNearbyWall(worker))this.startResourceSearch(worker,'idle',worker,R.idleGatherRadiusM*1000);
     }
     const farmRoster=this.phaseRoster()?.farms;if(farmRoster)countPhaseRoster('farms',farmRoster.length);
     for(const e of (farmRoster??(this.coarseFrame?this.actors():this.all())))if(e.kind==='building'&&e.typeId==='farm'&&e.farmerId){const worker=this.state.entities[e.farmerId];if(!worker||worker.kind!=='unit'||worker.orders[0]?.kind!=='gather'||worker.orders[0]?.targetId!==e.id){delete e.farmerId;this.activeWorkRoster?.wakeTarget(e.id);}}
@@ -3042,13 +3081,32 @@ export class Simulation {
       if(order.kind==='build'&&order.wallTargets){
         const pending=order.wallTargets.map(id=>this.state.entities[id]).filter((target):target is Building=>Boolean(target?.kind==='building'&&(!this.complete(target)||target.upgrade)));order.wallTargets=pending.map(target=>target.id);
         if(!pending.length){e.orders.shift();this.cancelPath(e);this.task(e,e.orders.length?'moving':'idle');continue;}
+        // Passing through a nonphysical plan is legal. Only relocate a stopped
+        // builder; cancelling an in-progress crossing would oscillate at edges.
+        const occupied=!e.path.length&&!e.pathRequestId?this.pendingBuildOverlap(e):undefined;
+        if(occupied&&occupied.id!==order.targetId){this.cancelPath(e);order.targetId=occupied.id;}
         const currentIndex=pending.findIndex(target=>target.id===order.targetId),goal=e.approachGoal;
         const exhausted=goal&&goal.key===order.targetId&&!goal.point&&goal.retryAtTick!==undefined;
         // The saved target list is a nearest-first pass, with targetId as its
         // cursor. Movement proves each face through the incremental scheduler;
         // a pending search must retain its frontier instead of using admission A*.
         const nextPass=currentIndex<0||(exhausted&&currentIndex===pending.length-1&&this.state.tick>=goal.retryAtTick!);
-        if(nextPass){
+        const blockedSite=currentIndex>=0?pending[currentIndex]!.pendingConstruction:undefined;
+        const blocked=blockedSite?.blocked&&this.state.tick<(blockedSite.retryAtTick??0);
+        const available=(target:Building)=>!target.pendingConstruction?.blocked||this.state.tick>=(target.pendingConstruction.retryAtTick??0);
+        if(blocked&&!occupied){
+          // Activation failures do not exhaust an approach search. Keep the
+          // paid site, but let this worker use another segment during its retry.
+          const alternatives=[...pending.slice(currentIndex+1),...pending.slice(0,currentIndex)].filter(available);
+          const next=alternatives.find(target=>this.workReachable(e,target))??alternatives[0];
+          if(next){this.cancelPath(e);order.targetId=next.id;}
+        }else if(!occupied&&!e.path.length&&!e.pathRequestId&&currentIndex>=0&&(builders.get(pending[currentIndex]!.id)?.length??0)>=R.constructionWorkerMultipliers.length){
+          // Extra contact workers add no speed beyond the configured curve.
+          // Send them to other paid work; routing still proves a legal approach.
+          const alternatives=pending.filter(target=>target.id!==order.targetId&&available(target)&&(builders.get(target.id)?.length??0)<R.constructionWorkerMultipliers.length);
+          const next=alternatives.find(target=>this.workReachable(e,target))??alternatives[0];
+          if(next){this.cancelPath(e);order.targetId=next.id;}
+        }else if(nextPass){
           pending.sort((a,b)=>distance(e,a)-distance(e,b));order.wallTargets=pending.map(target=>target.id);
           this.cancelPath(e);order.targetId=pending[0]!.id;
         }else if(exhausted&&currentIndex<pending.length-1&&!this.workReachable(e,pending[currentIndex]!)){
@@ -3134,6 +3192,9 @@ export class Simulation {
   private workReachable(unit:Unit,target:Entity):boolean{
     const box=this.workBounds(target);
     if(unit.path.length||Math.hypot(Math.max(0,Math.abs(unit.xMm-target.xMm)-box.halfWidth),Math.max(0,Math.abs(unit.zMm-target.zMm)-box.halfHeight))>units[unit.typeId].collisionRadiusM*1000+1100)return false;
+    // An unmaterialized plan may be crossed by an earlier queued move. Being
+    // inside it is not work contact: ordinary movement must first reach an edge.
+    if(target.kind==='building'&&target.pendingConstruction&&this.constructionOverlap(target,unit,0))return false;
     // Only the inaccessible factory-owned frame may certify stationary physical
     // work contact. Visibility/cargo/completion stay with their original callers.
     // Dynamic unit bodies are not part of nav().clearLine; static changes are

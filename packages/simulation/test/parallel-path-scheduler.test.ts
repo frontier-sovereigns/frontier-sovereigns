@@ -336,6 +336,71 @@ describe('bounded detached navigation service',()=>{
 });
 
 describe('persistent parallel path ownership',()=>{
+  it.each(['request','region','route','ordinary'] as const)('keeps coordinator and planner invalidation stamps identical for %s clearance',async source=>{
+    const profile='p1',owners=[profile],nav=new Navigation(64000,64000,[]),reference=new PathScheduler(()=>nav,owners),state=reference.exportState();
+    const giant={...request(profile),id:'giant',unitId:'giant',radiusMm:2400,from:{xMm:40000,zMm:40000},target:{xMm:48000,zMm:40000}};
+    if(source==='request')state.tasks.push({...giant,stage:'direct',lineStep:0,lineSteps:32});
+    if(source==='region')state.regions.push({key:`${profile}:2400:0,0`,profile,radiusMm:2400,x:0,z:0,labels:Array(256).fill(-2),cursor:0,frontier:[],frontierCursor:0,label:0,complete:false});
+    if(source==='route')state.routes.push([`${profile}:2400:0,0,0:1,0,0`,{profile,radiusMm:2400,points:[{xMm:24000,zMm:8000}],regions:[{region:'0,0',revision:0},{region:'1,0',revision:0}],corridor:['0,0','1,0']}]);
+    reference.importState(state);
+    const geometry=[{profile,revision:1,widthMm:64000,heightMm:64000,obstacles:[]}],remote=RemotePathScheduler.createSynchronous(owners,state,geometry),small={...request(profile),target:{xMm:12000,zMm:8000}},rect={xMm:18000,zMm:18000,widthMm:100,depthMm:100};
+    try{
+      for(const scheduler of [reference,remote]){scheduler.request(small);scheduler.invalidate(profile,[rect]);}
+      remote.synchronizeCaptureSynchronous(geometry);expect(remote.exportState()).toEqual(reference.exportState());
+      const stamp={region:'0,0',revision:source==='ordinary'?0:1};expect(remote.isCurrent(profile,[stamp])).toBe(true);
+      // A real ready result must remain usable on the next movement callback.
+      reference.advance(128);await remote.advanceAsync(128,geometry);const answer=remote.take(small.unitId,1);
+      expect(answer).toEqual(reference.take(small.unitId,1));expect(answer?.status).toBe('ready');
+      if(answer?.status==='ready')expect(remote.isCurrent(profile,answer.regions)).toBe(true);
+      remote.synchronizeCaptureSynchronous();const saved=remote.exportState(),cold=RemotePathScheduler.createSynchronous(owners,JSON.parse(JSON.stringify(saved)),geometry);
+      try{cold.invalidate(profile,[rect]);cold.synchronizeCaptureSynchronous();const next=cold.exportState();expect(cold.isCurrent(profile,[{region:'0,0',revision:next.revisions[`${profile}:0,0`]??0}])).toBe(true);}finally{await cold.dispose();}
+    }finally{await remote.dispose();}
+  });
+  it('freezes invalidation clearance before later requests and retains it after cancellation',async()=>{
+    const profile='p1',nav=new Navigation(64000,64000,[]),geometry=[{profile,revision:1,widthMm:64000,heightMm:64000,obstacles:[]}],remote=RemotePathScheduler.createSynchronous([profile],new PathScheduler(()=>nav,[profile]).exportState(),geometry),rect={xMm:18000,zMm:18000,widthMm:100,depthMm:100};
+    try{
+      remote.invalidate(profile,[rect]);
+      remote.request({...request(profile),radiusMm:2400});remote.cancel(request(profile).unitId);
+      remote.synchronizeCaptureSynchronous();const saved=remote.exportState();expect(saved.invalidationClearances).toEqual({[profile]:2400});expect(saved.tasks).toEqual([]);expect(saved.regions).toEqual([]);expect(saved.routes).toEqual([]);
+      const cold=RemotePathScheduler.createSynchronous([profile],JSON.parse(JSON.stringify(saved)),geometry);
+      try{for(const scheduler of [remote,cold]){scheduler.invalidate(profile,[rect]);scheduler.synchronizeCaptureSynchronous();}expect(cold.exportState()).toEqual(remote.exportState());}finally{await cold.dispose();}
+      const revisions=remote.exportState().revisions;expect(revisions[`${profile}:0,0`]).toBe(1);expect(revisions[`${profile}:1,1`]).toBe(2);
+      expect(remote.isCurrent(profile,[{region:'0,0',revision:1},{region:'1,1',revision:2}])).toBe(true);
+    }finally{await remote.dispose();}
+  });
+  it('rejects stale service results across queued giant-envelope edits and replays the same admission',async()=>{
+    const profile='p1',owners=[profile],nav=new Navigation(64000,64000,[]),state=new PathScheduler(()=>nav,owners).exportState();
+    state.regions.push({key:`${profile}:2400:0,0`,profile,radiusMm:2400,x:0,z:0,labels:Array(256).fill(-2),cursor:0,frontier:[],frontierCursor:0,label:0,complete:false});
+    const geometry=[{profile,revision:1,widthMm:64000,heightMm:64000,obstacles:[]}];let kernel:PersistentPathPlanningKernel|undefined;
+    const pending:{batch:PathPlanningBatch;resolve:(reply:PathPlanningReply)=>void}[]=[];
+    const executor:PathPlanningExecutor={initialize:async(profiles,saved,geometries)=>{kernel=new PersistentPathPlanningKernel(profiles,saved,geometries);return kernel.reply();},advance:batch=>new Promise(resolve=>pending.push({batch,resolve})),capture:async()=>kernel!.exportState(),dispose:async()=>{}};
+    const live=await RemotePathScheduler.create(owners,state,geometry,executor),replay=RemotePathScheduler.createSynchronous(owners,state,geometry),item={...request(profile),target:{xMm:12000,zMm:8000}};
+    try{
+      for(const scheduler of [live,replay]){scheduler.request(item);scheduler.startServiceLeases(64,geometry,6,1);scheduler.invalidate(profile,[{xMm:18000,zMm:18000,widthMm:100,depthMm:100}]);}
+      const next=pending.shift()!;next.resolve(kernel!.advance(next.batch));await Promise.resolve();
+      expect(live.admitServiceLeases()).toEqual(replay.admitServiceLeases(1));expect(live.take(item.unitId,1)?.status).toBe('pending');expect(replay.take(item.unitId,1)?.status).toBe('pending');
+      const flush=live.synchronizeCapture();const queued=pending.shift()!;expect(queued.batch.operations).toContainEqual({type:'invalidate',profile,rectangles:[{xMm:18000,zMm:18000,widthMm:100,depthMm:100}],clearanceMm:2400});queued.resolve(kernel!.advance(queued.batch));await flush;replay.synchronizeCaptureSynchronous();expect(live.exportState()).toEqual(replay.exportState());
+      const advancing=live.advanceAsync(64,geometry),work=pending.shift()!;work.resolve(kernel!.advance(work.batch));await advancing;await replay.advanceAsync(64,geometry);
+      const answer=live.take(item.unitId,1);expect(answer).toEqual(replay.take(item.unitId,1));expect(answer?.status).toBe('ready');if(answer?.status==='ready')expect(live.isCurrent(profile,answer.regions)).toBe(true);
+    }finally{await live.dispose();await replay.dispose();}
+  });
+  it('validates explicit giant clearance before invalidating and supports legacy queued edits',()=>{
+    const profile='p1',nav=new Navigation(64000,64000,[]),reference=new PathScheduler(()=>nav,[profile]);reference.request({...request(profile),radiusMm:2400});
+    const before=reference.exportState(),rect={xMm:18000,zMm:18000,widthMm:100,depthMm:100};
+    for(const clearance of [1000,NaN,Infinity]){expect(()=>reference.invalidate(profile,[rect],clearance)).toThrow('INVALID_PATH_CLEARANCE');expect(reference.exportState()).toEqual(before);}
+    const kernel=new PersistentPathPlanningKernel([profile],before,[{profile,revision:1,widthMm:64000,heightMm:64000,obstacles:[]}]);kernel.advance({batchId:1,grants:[],geometry:[],operations:[{type:'invalidate',profile,rectangles:[rect]}]});reference.invalidate(profile,[rect]);expect(kernel.exportState()).toEqual(reference.exportState());
+  });
+  it('keeps giant-envelope stamps current through a real worker checkpoint and recovery',async()=>{
+    const profile='p1',owners=[profile],geometry=[{profile,revision:1,widthMm:64000,heightMm:64000,obstacles:[]}],nav=new Navigation(64000,64000,[]),reference=new PathScheduler(()=>nav,owners);reference.request({...request(profile),id:'giant',unitId:'giant',radiusMm:2400,target:{xMm:12000,zMm:8000}});
+    const pool=new PathWorkerPool({workerCount:1,checkpointEvery:1}),remote=await RemotePathScheduler.create(owners,reference.exportState(),geometry,pool),small={...request(profile),target:{xMm:11000,zMm:8000}};
+    try{
+      for(const scheduler of [reference,remote]){scheduler.request(small);scheduler.invalidate(profile,[{xMm:18000,zMm:18000,widthMm:100,depthMm:100}]);}
+      reference.advance(64);await remote.advanceAsync(64,geometry);const answer=remote.take(small.unitId,1);expect(answer).toEqual(reference.take(small.unitId,1));expect(answer?.status).toBe('ready');if(answer?.status==='ready')expect(remote.isCurrent(profile,answer.regions)).toBe(true);
+      await remote.synchronizeCapture();expect(remote.exportState()).toEqual(reference.exportState());
+      await (pool as unknown as {slots:{worker:{terminate():Promise<number>}}[]}).slots[0]!.worker.terminate();
+      const rect={xMm:18000,zMm:18000,widthMm:100,depthMm:100};for(const scheduler of [reference,remote])scheduler.invalidate(profile,[rect]);await remote.synchronizeCapture();expect(remote.exportState()).toEqual(reference.exportState());expect(remote.isCurrent(profile,[{region:'0,0',revision:2}])).toBe(true);expect(pool.diagnostics().workers[0]!.recoveries).toBe(1);
+    }finally{await remote.dispose();}
+  });
   it('combines zero-credit boundary edits and capture in one native request per partition',async()=>{
     const geometry=geometries(),expected=inline(geometry),pool=new PathWorkerPool({workerCount:2}),remote=await RemotePathScheduler.create(profiles,expected.exportState(),geometry,pool);
     const posts:{type:string;checkpoint?:boolean;batch?:{grants:unknown[]}}[]=[];

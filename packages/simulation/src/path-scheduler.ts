@@ -60,7 +60,17 @@ interface Route {profile:string;radiusMm:number;points:Position[];regions:Region
 type RouteComponentIndex=Map<string,Map<number,Map<SearchKey,Map<SearchKey,Set<string>>>>>;
 type RouteEndIndex=Map<string,Map<number,Map<SearchKey,Map<string,readonly SearchKey[]>>>>;
 /** Internal snapshots require the same engine; full saves separately bind its hash. */
-export interface PathSchedulerState {version:1;tasks:SavedTask[];regions:Region[];revisions:Record<string,number>;routes:[string,Route][];cursor:number;profileCursors?:Record<string,number>;priority?:PathPriorityState;sharedJobs?:{geometryVersions:Record<string,number>;registry:SharedPathJobsState}}
+export interface PathSchedulerState {version:1;tasks:SavedTask[];regions:Region[];revisions:Record<string,number>;routes:[string,Route][];cursor:number;profileCursors?:Record<string,number>;invalidationClearances?:Record<string,number>;priority?:PathPriorityState;sharedJobs?:{geometryVersions:Record<string,number>;registry:SharedPathJobsState}}
+/** Older saves derive the bound from their retained work. New saves retain the
+ * per-profile high-water mark even after a giant request is canceled before it
+ * creates a cache; otherwise warm and cold invalidations would differ. */
+export function pathInvalidationClearances(state:PathSchedulerState):Record<string,number>{
+  const result={...state.invalidationClearances};
+  for(const [profile,radius]of Object.entries(result))if(!profile||!Number.isFinite(radius)||radius<1000)throw new Error('INVALID_PATH_CLEARANCE');
+  const retain=(value:{profile:string;radiusMm:number})=>{if(value.radiusMm>1000)result[value.profile]=Math.max(result[value.profile]??1000,value.radiusMm);};
+  for(const value of state.tasks)retain(value);for(const value of state.regions)retain(value);for(const [,value]of state.routes)retain(value);
+  return result;
+}
 export interface PathWorkReport {work:number;pending:number;ready:number;blocked:number;regionCount:number;cacheHits:number}
 export interface PathProfileGrant {profile:string;nodeBudget:number}
 /** Read-side state only: search heaps and region frontiers remain in their owner. */
@@ -77,9 +87,18 @@ export function canonicalPathState(state:PathSchedulerState):PathSchedulerState{
   state.revisions=Object.fromEntries(Object.entries(state.revisions).sort(([a],[b])=>compare(a,b)));
   state.profileCursors=Object.fromEntries(Object.entries(state.profileCursors??{}).sort(([a],[b])=>compare(a,b)));
   // Replay hashes serialize object insertion order, including this root object.
-  return {version:1,tasks:state.tasks,regions:state.regions,revisions:state.revisions,routes:state.routes,cursor:state.cursor,profileCursors:state.profileCursors,...(state.priority?{priority:{tick:state.priority.tick,profiles:Object.fromEntries(Object.entries(state.priority.profiles).sort(([a],[b])=>compare(a,b)))}}:{}),...(state.sharedJobs?{sharedJobs:{geometryVersions:Object.fromEntries(Object.entries(state.sharedJobs.geometryVersions).sort(([a],[b])=>compare(a,b))),registry:state.sharedJobs.registry}}:{})};
+  return {version:1,tasks:state.tasks,regions:state.regions,revisions:state.revisions,routes:state.routes,cursor:state.cursor,profileCursors:state.profileCursors,...(state.invalidationClearances&&Object.keys(state.invalidationClearances).length?{invalidationClearances:Object.fromEntries(Object.entries(state.invalidationClearances).sort(([a],[b])=>compare(a,b)))}:{}),...(state.priority?{priority:{tick:state.priority.tick,profiles:Object.fromEntries(Object.entries(state.priority.profiles).sort(([a],[b])=>compare(a,b)))}}:{}),...(state.sharedJobs?{sharedJobs:{geometryVersions:Object.fromEntries(Object.entries(state.sharedJobs.geometryVersions).sort(([a],[b])=>compare(a,b))),registry:state.sharedJobs.registry}}:{})};
 }
 const SIDE=16,CELL=1000;
+/** Coordinator and planner must increment exactly the same regional stamps.
+ * The explicit envelope also freezes queued invalidations before later requests
+ * introduce a larger body. It is conservative, never a collision exemption. */
+export function pathInvalidationRegions(rectangles:readonly TerrainRectangle[],clearanceMm:number):Set<string>{
+  if(!Number.isFinite(clearanceMm)||clearanceMm<1000)throw new Error('INVALID_PATH_CLEARANCE');
+  const changed=new Set<string>();
+  for(const rect of rectangles)for(let z=Math.floor((rect.zMm-clearanceMm)/(SIDE*CELL));z<=Math.floor((rect.zMm+rect.depthMm+clearanceMm)/(SIDE*CELL));z++)for(let x=Math.floor((rect.xMm-clearanceMm)/(SIDE*CELL));x<=Math.floor((rect.xMm+rect.widthMm+clearanceMm)/(SIDE*CELL));x++)if(x>=0&&z>=0)changed.add(`${x},${z}`);
+  return changed;
+}
 const directions=[[0,-1],[-1,0],[1,0],[0,1]] as const;
 const componentRegion=(key:string)=>key.slice(0,key.lastIndexOf(','));
 /** Closed segment/expanded-region intersection, not spaced point sampling.
@@ -169,6 +188,7 @@ export class PathScheduler {
   private regions=new Map<string,Region>();
   private regionLookup=new Map<string,Map<number,Map<SearchKey,Region>>>();
   private revisions:Record<string,number>={};
+  private invalidationClearances:Record<string,number>={};
   private routes=new Map<string,Route>();
   private routeComponents:RouteComponentIndex=new Map();
   private routeEnds:RouteEndIndex=new Map();
@@ -201,6 +221,7 @@ export class PathScheduler {
     if(existing&&existing.orderRevision>request.orderRevision)return;
     if(existing&&existing.id===request.id&&existing.orderRevision===request.orderRevision)return;
     if(this.profileIds.length&&!existing&&this.tasks.size>=PATH_TASK_LIMIT)throw new Error('PATH_TASK_LIMIT');
+    if(request.radiusMm>1000)this.invalidationClearances[request.profile]=Math.max(this.invalidationClearances[request.profile]??1000,request.radiusMm);
     if(request.workClass!==undefined)this.priority??={tick:request.enqueuedTick!,profiles:{}};
     if(request.workClass!==undefined&&this.profileIds.length){this.sharedInitialized=true;this.sharedGeometryVersions[request.profile]??=0;}
     this.sharedJobs.cancel(request.unitId);
@@ -216,13 +237,14 @@ export class PathScheduler {
     this.sharedJobs.cancel(unitId);this.tasks.delete(unitId);return structuredClone(task.result!);
   }
   /** Call only for changes in this recipient's authorized obstacle geometry. */
-  invalidate(profile:string,rectangles:readonly TerrainRectangle[]):void {
-    const changed=new Set<string>();
+  invalidate(profile:string,rectangles:readonly TerrainRectangle[],clearanceMm?:number):void {
     // A neighboring region can change traversability for a large body even when
     // its center never enters the edited rectangle. Derive the same envelope
     // after cold restore from retained caches/jobs, keeping Classic's 1m floor.
-    let clearance=1000;for(const radius of this.regionLookup.get(profile)?.keys()??[])clearance=Math.max(clearance,radius);for(const radius of this.routeEnds.get(profile)?.keys()??[])clearance=Math.max(clearance,radius);for(const task of this.tasks.values())if(task.profile===profile)clearance=Math.max(clearance,task.radiusMm);
-    for(const rect of rectangles)for(let z=Math.floor((rect.zMm-clearance)/(SIDE*CELL));z<=Math.floor((rect.zMm+rect.depthMm+clearance)/(SIDE*CELL));z++)for(let x=Math.floor((rect.xMm-clearance)/(SIDE*CELL));x<=Math.floor((rect.xMm+rect.widthMm+clearance)/(SIDE*CELL));x++)if(x>=0&&z>=0)changed.add(`${x},${z}`);
+    const clearance=this.invalidationClearances[profile]??1000;
+    if(clearanceMm!==undefined&&(!Number.isFinite(clearanceMm)||clearanceMm<clearance))throw new Error('INVALID_PATH_CLEARANCE');
+    const changed=pathInvalidationRegions(rectangles,clearanceMm??clearance);
+    if((clearanceMm??clearance)>1000)this.invalidationClearances[profile]=clearanceMm??clearance;
     for(const region of changed){const key=`${profile}:${region}`;this.revisions[key]=(this.revisions[key]??0)+1;}
     const restarted=new Set<string>();
     if(Object.hasOwn(this.sharedGeometryVersions,profile)){
@@ -271,7 +293,7 @@ export class PathScheduler {
     }
   }
   isCurrent(profile:string,stamps:readonly RegionStamp[]):boolean{return stamps.every(stamp=>(this.revisions[`${profile}:${stamp.region}`]??0)===stamp.revision);}
-  exportState():PathSchedulerState{const state=structuredClone({version:1 as const,tasks:[...this.tasks.values()].map(exportTask),regions:[...this.regions.values()],revisions:this.revisions,routes:[...this.routes],cursor:this.cursor,profileCursors:this.profileCursors,...(this.priority?{priority:this.priority}:{}),...(this.sharedInitialized?{sharedJobs:{geometryVersions:this.sharedGeometryVersions,registry:this.sharedJobs.exportState()}}:{})});return this.profileIds.length?canonicalPathState(state):state;}
+  exportState():PathSchedulerState{const state=structuredClone({version:1 as const,tasks:[...this.tasks.values()].map(exportTask),regions:[...this.regions.values()],revisions:this.revisions,routes:[...this.routes],cursor:this.cursor,profileCursors:this.profileCursors,...(Object.keys(this.invalidationClearances).length?{invalidationClearances:this.invalidationClearances}:{}),...(this.priority?{priority:this.priority}:{}),...(this.sharedInitialized?{sharedJobs:{geometryVersions:this.sharedGeometryVersions,registry:this.sharedJobs.exportState()}}:{})});return this.profileIds.length?canonicalPathState(state):state;}
   /** Internal owned-worker emission only. Public exportState remains detached.
    * Copy caller metadata before reading authority, then assemble fresh ordered
    * containers and use the captured IPC intrinsic as the sole deep-copy boundary.
@@ -280,7 +302,7 @@ export class PathScheduler {
     try{
       try{checkpointHasRef(port);}catch{throw new Error('INVALID_NATIVE_CHECKPOINT_PORT');}
       if(!checkpointMessages.has(message))throw new Error('INVALID_PATH_CHECKPOINT_MESSAGE');
-      const assembled:PathSchedulerState={version:1,tasks:[...this.tasks.values()].map(exportTask),regions:[...this.regions.values()],revisions:this.revisions,routes:[...this.routes],cursor:this.cursor,profileCursors:this.profileCursors,...(this.priority?{priority:this.priority}:{}),...(this.sharedInitialized?{sharedJobs:{geometryVersions:this.sharedGeometryVersions,registry:this.sharedJobs.exportState()}}:{})};
+      const assembled:PathSchedulerState={version:1,tasks:[...this.tasks.values()].map(exportTask),regions:[...this.regions.values()],revisions:this.revisions,routes:[...this.routes],cursor:this.cursor,profileCursors:this.profileCursors,...(Object.keys(this.invalidationClearances).length?{invalidationClearances:this.invalidationClearances}:{}),...(this.priority?{priority:this.priority}:{}),...(this.sharedInitialized?{sharedJobs:{geometryVersions:this.sharedGeometryVersions,registry:this.sharedJobs.exportState()}}:{})};
       postPathCheckpointMessage(port,message,this.profileIds.length?canonicalPathState(assembled):assembled);
       nativeCheckpointCounts.posted=Math.min(Number.MAX_SAFE_INTEGER,nativeCheckpointCounts.posted+1);
     }finally{discardPathCheckpointMessage(message);}
@@ -313,8 +335,10 @@ export class PathScheduler {
   }
   importState(state:PathSchedulerState):void {
     if(state.version!==1)throw new Error('INVALID_PATH_STATE');
+    const clearances=pathInvalidationClearances(state);if(this.profileIds.length&&Object.keys(clearances).some(profile=>!this.profileIds.includes(profile)))throw new Error('INVALID_PATH_CLEARANCE');
     for(const task of state.tasks)if(task.stage==='corner'||task.corner){const nav=this.navigation(task.profile);if(!validCornerPathSearch(task,nav.widthMm,nav.heightMm,nav.obstacles))throw new Error('INVALID_CORNER_PATH_STATE');}
     const restored=structuredClone(state),counts=new Map<string,number>();for(const [,route]of restored.routes){const count=(counts.get(route.profile)??0)+1;if(count>512)throw new Error('INVALID_PATH_STATE');counts.set(route.profile,count);}
+    this.invalidationClearances=clearances;
     this.tasks=new Map(restored.tasks.map(task=>[task.unitId,importTask(task)]));this.regions=new Map(restored.regions.map(region=>[region.key,region]));this.regionLookup=new Map();for(const region of this.regions.values())this.indexRegion(region);this.revisions=restored.revisions;this.routes=new Map(restored.routes);this.cursor=restored.cursor;this.profileCursors=restored.profileCursors??{};this.priority=restored.priority;
     this.sharedInitialized=Boolean(restored.sharedJobs);this.sharedGeometryVersions=restored.sharedJobs?.geometryVersions??{};this.sharedJobs=new SharedPathJobs(member=>this.sharedFrontier(member));if(restored.sharedJobs)this.sharedJobs.importState(restored.sharedJobs.registry);
     this.routeComponents=new Map();this.routeEnds=new Map();for(const [key,route]of this.routes)this.indexRoute(key,route);

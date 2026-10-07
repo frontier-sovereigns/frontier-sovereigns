@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useModalFocus } from './modalFocus';
 import { ages, balance, buildings, units, technologies, resolveRuleset, structureUpgrade, buildingSatisfies, type BuildingId, type TechnologyId, type GameplayCommand, type PlayerView, type ResourceBank, type ResourceType, type ViewEntity } from '@frontier/shared';
 import { CombatOrders, type TargetOrder } from './CombatControls';
@@ -11,23 +11,58 @@ export const economyBuildings = ['house', 'mill', 'lumber_camp', 'mining_camp', 
 export const resourceIcons = { food: '◒', wood: '♧', gold: '◇', stone: '⬡' };
 const militaryBuildings = ['archery_range', 'stable', 'siege_workshop', 'blacksmith', 'university', 'watchtower', 'fortress', 'monument'] as const;
 const fortificationBuildings = ['palisade_wall', 'wooden_gate', 'stone_wall', 'stone_gate'] as const;
+type BuildPalette = 'economy' | 'military' | 'fortifications' | 'orders';
 
-export function contentRequirementLock(definition:{requiredTechnologies?:string[];requiredBuildings?:string[];maxPerPlayer?:number;id:string},view:PlayerView):string {
+export function buildPaletteTypes(content: ReturnType<typeof resolveRuleset>, palette: BuildPalette): BuildingId[] {
+  if (palette === 'orders') return [];
+  const base = palette === 'economy' ? economyBuildings : palette === 'military' ? militaryBuildings : fortificationBuildings;
+  const additions = palette === 'economy' ? [] : content.buildings.filter(item => item.minAge >= 5 && (palette === 'fortifications' ? !!item.wallEquivalentCells : !item.wallEquivalentCells)).map(item => item.id);
+  // A match moves Monument's unlock to its maximum age. It is already in the
+  // military list: duplicate IDs produce duplicate React keys and stale cards
+  // that accumulate across view updates and subsequent tab changes.
+  return [...new Set<BuildingId>([...base, ...additions])].filter(type => content.buildings.some(item => item.id === type));
+}
+
+export function createEconomyViewIndex(view: PlayerView) {
+  const ownedBuildings: ViewEntity[] = [], completedBuildings: ViewEntity[] = [], ownedUnits: ViewEntity[] = [], villagers: ViewEntity[] = [];
+  const typeCounts = new Map<string, number>(), familyCounts = new Map<string, number>(), unitCounts = new Map<string, number>(), gatherable = new Set<ResourceType>();
+  const teams = new Map(view.players.map(player => [player.id, player.teamId])), myTeam = teams.get(view.playerId);
+  let nonWallBuildings = 0;
+  for (const entity of view.entities) {
+    if (entity.resource && !entity.ghost && (entity.amount ?? 0) > 0 && (entity.kind === 'resource' || entity.typeId === 'farm' && teams.get(entity.ownerId!) === myTeam)) gatherable.add(entity.resource);
+    if (entity.ownerId !== view.playerId) continue;
+    unitCounts.set(entity.typeId, (unitCounts.get(entity.typeId) ?? 0) + 1);
+    for (const job of entity.queue ?? []) if (job.kind === 'train') unitCounts.set(job.typeId, (unitCounts.get(job.typeId) ?? 0) + 1);
+    if (entity.kind === 'unit') { ownedUnits.push(entity); if (entity.typeId === 'villager' && !entity.garrisonedIn) villagers.push(entity); }
+    if (entity.kind !== 'building') continue;
+    ownedBuildings.push(entity);
+    if ((entity.progress ?? 1) >= 1 && !entity.demolitionTicksRemaining) completedBuildings.push(entity);
+    typeCounts.set(entity.typeId, (typeCounts.get(entity.typeId) ?? 0) + 1);
+    const definition = buildings[entity.typeId];
+    if (!definition?.wallEquivalentCells) nonWallBuildings++;
+    if (definition?.family) familyCounts.set(definition.family, (familyCounts.get(definition.family) ?? 0) + 1);
+  }
+  return { ownedBuildings, completedBuildings, ownedUnits, villagers, typeCounts, familyCounts, unitCounts, gatherable, nonWallBuildings };
+}
+type EconomyViewIndex = ReturnType<typeof createEconomyViewIndex>;
+
+export function contentRequirementLock(definition:{requiredTechnologies?:string[];requiredBuildings?:string[];maxPerPlayer?:number;id:string},view:PlayerView,index?:EconomyViewIndex):string {
   const tech=definition.requiredTechnologies?.find(id=>!view.self.technologies?.includes(id as TechnologyId));if(tech)return `${technologies[tech]?.name??tech} required`;
-  const completed=view.entities.filter(entity=>entity.ownerId===view.playerId&&entity.kind==='building'&&(entity.progress??1)>=1&&!entity.demolitionTicksRemaining);
+  if (!definition.requiredBuildings?.length) return '';
+  const completed=index?.completedBuildings??view.entities.filter(entity=>entity.ownerId===view.playerId&&entity.kind==='building'&&(entity.progress??1)>=1&&!entity.demolitionTicksRemaining);
   const required=definition.requiredBuildings?.find(id=>!completed.some(entity=>buildingSatisfies(entity.typeId as BuildingId,id as BuildingId)));if(required)return `Completed ${buildings[required]?.name??required} required`;
   return '';
 }
-export function buildLock(type: BuildingId, view: PlayerView): string {
+export function buildLock(type: BuildingId, view: PlayerView, index?: EconomyViewIndex): string {
   const definition = resolveRuleset(view.rulesetId,view.maxAge).buildings.find(item=>item.id===type);if(!definition)return 'Unavailable in this match';
-  const requirement=contentRequirementLock(definition,view);if(requirement)return requirement;
-  const own=view.entities.filter(entity=>entity.ownerId===view.playerId&&entity.kind==='building');
+  const requirement=contentRequirementLock(definition,view,index);if(requirement)return requirement;
+  const own=index?.ownedBuildings??view.entities.filter(entity=>entity.ownerId===view.playerId&&entity.kind==='building');
   if(definition.maxPerPlayer!==undefined&&own.filter(entity=>entity.typeId===type||entity.upgrade?.targetTypeId===type).length>=definition.maxPerPlayer)return `Faction limit ${definition.maxPerPlayer} reached`;
-  if(definition.familyCap!==undefined&&own.filter(entity=>buildings[entity.typeId]?.family===definition.family).length>=definition.familyCap)return `Family limit ${definition.familyCap} reached`;
+  if(definition.familyCap!==undefined&&(index ? index.familyCounts.get(definition.family!)??0 : own.filter(entity=>buildings[entity.typeId]?.family===definition.family).length)>=definition.familyCap)return `Family limit ${definition.familyCap} reached`;
   if (definition.minAge > view.self.age) return `${ages[definition.minAge]!.name} required`;
   const limit = definition.maxPerPlayerByAge?.[String(view.self.age)];
-  if (limit !== undefined && view.entities.filter((entity) => entity.ownerId === view.playerId && entity.typeId === type).length >= limit) return `${definition.name} limit reached (${limit})`;
-  if (!definition.wallEquivalentCells && view.entities.filter((entity) => entity.ownerId === view.playerId && entity.kind === 'building' && !buildings[entity.typeId as BuildingId]?.wallEquivalentCells).length >= balance.rules.maxNonWallBuildingsPerPlayer) return 'Structure limit reached';
+  if (limit !== undefined && (index ? index.typeCounts.get(type)??0 : own.filter(entity => entity.typeId === type).length) >= limit) return `${definition.name} limit reached (${limit})`;
+  if (!definition.wallEquivalentCells && (index?.nonWallBuildings ?? own.filter(entity => !buildings[entity.typeId]?.wallEquivalentCells).length) >= balance.rules.maxNonWallBuildingsPerPlayer) return 'Structure limit reached';
   return missingLabel(definition.cost, view.self.resources);
 }
 
@@ -42,47 +77,55 @@ interface ActionProps {
 export function EconomyActions({ view, selected, selectedIds, workers, locked, placement, setPlacement, gather, send, setRally, receipt, pendingCount, orderMode, setOrderMode }: ActionProps) {
   const [quantity, setQuantity] = useState(1);
   const content=resolveRuleset(view.rulesetId,view.maxAge);
+  // Server views are replaced atomically. Mouse hover and local tab changes can
+  // reuse this recipient-only index without walking thousands of resource nodes.
+  const viewIndex = useMemo(() => createEconomyViewIndex(view), [view]);
   const [upgradeTarget,setUpgradeTarget]=useState<BuildingId|null>(null);
   const upgradeModal=useModalFocus(!!upgradeTarget,()=>setUpgradeTarget(null));
-  const [palette, setPalette] = useState<'economy' | 'military' | 'fortifications' | 'orders'>('economy');
+  const [palette, setPalette] = useState<BuildPalette>('economy');
   const [producerTab, setProducerTab] = useState<'train' | 'research'>('train');
   const [demolish, setDemolish] = useState<string | null>(null);
   const demolishModal = useModalFocus(!!demolish, () => setDemolish(null));
   const own = selected?.ownerId === view.playerId;
   const building = own && selected?.kind === 'building' ? selected : undefined;
-  const unitIds = view.entities.filter((entity) => selectedIds.includes(entity.id) && entity.ownerId === view.playerId && entity.kind === 'unit').map((entity) => entity.id);
+  const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const actionSelection = useMemo(() => view.entities.filter(entity => selectedSet.has(entity.id)), [view, selectedSet]);
+  const unitIds = useMemo(() => viewIndex.ownedUnits.filter(entity => selectedSet.has(entity.id)).map(entity => entity.id), [viewIndex, selectedSet]);
   const complete = building && (building.progress ?? 1) >= 1;
   const definition = building ? buildings[building.typeId] : undefined;
-  const upgradeBatch = view.entities.filter(entity=>selectedIds.includes(entity.id)&&entity.ownerId===view.playerId&&entity.kind==='building');
+  const upgradeBatch = useMemo(() => viewIndex.ownedBuildings.filter(entity => selectedSet.has(entity.id)), [viewIndex, selectedSet]);
   const upgradePrice = building&&upgradeTarget?structureUpgrade(building.typeId as BuildingId,upgradeTarget):null;
   const validUpgradeBatch=!!building&&upgradeBatch.length===selectedIds.length&&upgradeBatch.length>0&&upgradeBatch.length<=64&&upgradeBatch.every(entity=>entity.typeId===building.typeId&&(entity.progress??1)>=1&&!entity.upgrade&&!entity.demolitionTicksRemaining);
   const trainable = (definition?.produces ?? []).filter(id=>content.units.some(item=>item.id===id));
   const researchable = content.technologies.some((technology) => technology.researchedAt === building?.typeId);
   const showResearch = complete && researchable && (!trainable.length || producerTab === 'research');
-  const myTeam = view.players.find((player) => player.id === view.playerId)?.teamId;
-  const canGather = (entity: ViewEntity, resource: ResourceType) => entity.resource === resource && !entity.ghost && (entity.amount ?? 0) > 0 && (entity.kind === 'resource' || entity.typeId === 'farm' && view.players.find((player) => player.id === entity.ownerId)?.teamId === myTeam);
-  const nearestWorker = building ? view.entities.filter((entity) => entity.ownerId === view.playerId && entity.typeId === 'villager' && !entity.garrisonedIn).sort((a, b) => Number(b.taskState === 'idle' || b.order === 'idle') - Number(a.taskState === 'idle' || a.order === 'idle') || Math.hypot(a.xMm - building.xMm, a.zMm - building.zMm) - Math.hypot(b.xMm - building.xMm, b.zMm - building.zMm))[0] : undefined;
+  const nearestWorker = useMemo(() => building ? [...viewIndex.villagers].sort((a, b) => Number(b.taskState === 'idle' || b.order === 'idle') - Number(a.taskState === 'idle' || a.order === 'idle') || Math.hypot(a.xMm - building.xMm, a.zMm - building.zMm) - Math.hypot(b.xMm - building.xMm, b.zMm - building.zMm))[0] : undefined, [viewIndex, building]);
 
   return <section className={`actions-panel ${workers.length ? 'worker-actions' : ''}`}>
     {workers.length ? <div className="build-tabs" role="tablist" aria-label="Villager actions">{(['economy', 'military', 'fortifications', 'orders'] as const).map((tab) => <button key={tab} role="tab" aria-selected={palette === tab} onClick={() => setPalette(tab)}>{tab}</button>)}</div> : complete && researchable && trainable.length ? <div className="build-tabs" role="tablist" aria-label="Building actions"><button role="tab" aria-selected={producerTab === 'train'} onClick={() => setProducerTab('train')}>Train</button><button role="tab" aria-selected={producerTab === 'research'} onClick={() => setProducerTab('research')}>Research {building.typeId === 'town_center' ? '& ages' : ''}</button></div> : <span className="eyebrow">AVAILABLE ORDERS</span>}
-    {workers.length > 0 && palette !== 'orders' && <div className="gather-actions">{balance.resourceOrder.map((resource) => <button className="quiet-button" key={resource} aria-label={`Gather ${resource}`} title={`Gather nearest visible ${resource}`} disabled={locked || !view.entities.some((entity) => canGather(entity, resource))} onClick={() => gather(resource)}><AssetIcon id={`${resource}_icon`}/><span>{resource}</span></button>)}<button className="quiet-button" aria-label="Stop selected units" disabled={locked} onClick={() => send({ kind: 'stop', unitIds })}>Stop <kbd>{keyLabel(readPreferences().bindings.stop)}</kbd></button></div>}
+    {workers.length > 0 && palette !== 'orders' && <div className="gather-actions">{balance.resourceOrder.map((resource) => <button className="quiet-button" key={resource} aria-label={`Gather ${resource}`} title={`Gather nearest visible ${resource}`} disabled={locked || !viewIndex.gatherable.has(resource)} onClick={() => gather(resource)}><AssetIcon id={`${resource}_icon`}/><span>{resource}</span></button>)}<button className="quiet-button" aria-label="Stop selected units" disabled={locked} onClick={() => send({ kind: 'stop', unitIds })}>Stop <kbd>{keyLabel(readPreferences().bindings.stop)}</kbd></button></div>}
+    <div className="actions-scroll" role="region" aria-label="Available actions" tabIndex={0} key={workers.length ? palette : `${building?.typeId ?? 'units'}:${producerTab}`} onKeyDown={(event) => {
+      // Navigation keys scroll this panel instead of panning the world. Keep
+      // gameplay keys (including placement rotation) available after a click.
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'PageUp', 'PageDown', 'Home', 'End', ' '].includes(event.key)) event.stopPropagation();
+    }}>
     <div className={`actions-grid ${workers.length && palette !== 'orders' ? 'building-palette' : ''}`}>
-      {workers.length > 0 && palette !== 'orders' && (palette === 'economy' ? [...economyBuildings] : palette === 'military' ? [...militaryBuildings,...content.buildings.filter(item=>item.minAge>=5&&!item.wallEquivalentCells).map(item=>item.id)] : [...fortificationBuildings,...content.buildings.filter(item=>item.minAge>=5&&item.wallEquivalentCells).map(item=>item.id)]).filter(type=>content.buildings.some(item=>item.id===type)).map((type) => {
-        const reason = buildLock(type, view), item = buildings[type]!;
-        const action = <button className={`action ${placement === type ? 'active' : ''}`} key={type} aria-label={`Build ${item.name}`} disabled={locked || !!reason} title={reason || `${costLabel(item.cost)} · ${item.buildSeconds}s with one builder / Requires ${[...(item.requiredTechnologies??[]).map(id=>technologies[id]!.name),...(item.requiredBuildings??[]).map(id=>buildings[id]!.name)].join(', ')||'no additional research'}${item.maxPerPlayer?` / Faction cap ${item.maxPerPlayer}`:''}${type.endsWith('_gate') ? ' · new gate; rotate with the keys shown in the placement guide' : ''}`} onClick={() => setPlacement(placement === type ? null : type)}><AssetIcon id={`building_icon_${type}`} className="action-icon"/><b>{item.name}</b><small>{reason || costLabel(item.cost)}</small></button>;
+      {workers.length > 0 && palette !== 'orders' && buildPaletteTypes(content, palette).map((type) => {
+        const reason = buildLock(type, view, viewIndex), item = buildings[type]!;
+        const action = <button className={`action ${placement === type ? 'active' : ''}`} key={type} aria-label={`Build ${item.name}`} disabled={locked || !!reason} title={reason || `${costLabel(item.cost)} · ${item.buildSeconds}s with one builder / Requires ${[...(item.requiredTechnologies??[]).map(id=>technologies[id]!.name),...(item.requiredBuildings??[]).map(id=>buildings[id]!.name)].join(', ')||'no additional research'}${item.maxPerPlayer?` / Faction cap ${item.maxPerPlayer}`:''}${type.endsWith('_gate') ? ' · auto-aligns in gaps or replaces completed matching walls; rotate on open ground' : ''}`} onClick={() => setPlacement(placement === type ? null : type)}><AssetIcon id={`building_icon_${type}`} className="action-icon"/><b>{item.name}</b><small>{reason || costLabel(item.cost)}</small></button>;
         return type.endsWith('_gate') ? <div className="gate-choice" key={type}>{action}<button className={`gate-replace ${orderMode === type ? 'active' : ''}`} aria-label={`Replace walls with ${item.name}`} disabled={locked || !!reason} title={reason || `Replace ${buildings[type]!.wallEquivalentCells??3} completed matching walls · ${costLabel(item.cost)}`} onClick={() => setOrderMode(orderMode === type ? null : type as TargetOrder)}>Replace walls</button></div> : action;
       })}
       {complete && !showResearch && trainable.map((type) => {
-        const item = units[type]!, capUsed=view.entities.filter(entity=>entity.ownerId===view.playerId&&(entity.typeId===type||entity.queue?.some(job=>job.kind==='train'&&job.typeId===type))).reduce((sum,entity)=>sum+(entity.typeId===type?1:0)+(entity.queue?.filter(job=>job.kind==='train'&&job.typeId===type).length??0),0), reason = contentRequirementLock(item,view) || (item.maxPerPlayer!==undefined&&capUsed+quantity>item.maxPerPlayer ? `Faction limit ${capUsed} / ${item.maxPerPlayer}` : '') || (item.minAge > view.self.age ? `${ages[item.minAge]!.name} required` : (building.queue?.length ?? 0) + quantity > balance.rules.queueWaitingLimit + 1 ? 'Production queue is full' : missingLabel(item.cost, view.self.resources, quantity));
+        const item = units[type]!, capUsed=viewIndex.unitCounts.get(type)??0, reason = contentRequirementLock(item,view,viewIndex) || (item.maxPerPlayer!==undefined&&capUsed+quantity>item.maxPerPlayer ? `Faction limit ${capUsed} / ${item.maxPerPlayer}` : '') || (item.minAge > view.self.age ? `${ages[item.minAge]!.name} required` : (building.queue?.length ?? 0) + quantity > balance.rules.queueWaitingLimit + 1 ? 'Production queue is full' : missingLabel(item.cost, view.self.resources, quantity));
         return <button className="action" key={type} aria-label={`Train ${item.name}`} disabled={locked || !!reason} title={reason || `${costLabel(item.cost, quantity)} · ${item.trainSeconds}s each · ${item.tags.join(', ')} · ${Object.entries(item.bonusDamage).map(([tag, bonus]) => `+${bonus} vs ${tag}`).join(', ')}`} onClick={() => send({ kind: 'train', buildingId: building.id, unitType: type, quantity })}><AssetIcon id={`unit_icon_${type}`} className="action-icon"/><b>{item.name}{quantity > 1 ? ` ×${quantity}` : ''}</b><small>{reason || costLabel(item.cost, quantity)}</small>{item.maxPerPlayer!==undefined&&<small>{capUsed} / {item.maxPerPlayer} faction limit / {item.population} population each</small>}</button>;
       })}
       {showResearch && <ResearchActions view={view} building={building} locked={locked} send={send} />}
-      {complete&&content.buildings.filter(item=>item.upgradeFrom===building.typeId).map(item=>{const batch=upgradeBatch,price=structureUpgrade(building.typeId as BuildingId,item.id)!,reason=batch.length>64?'Select at most 64 structures':!validUpgradeBatch?'Select completed matching structures with no active upgrade':view.self.age<item.minAge?`${ages[item.minAge]!.name} required`:contentRequirementLock(item,view)||missingLabel(price.cost,view.self.resources,batch.length);return <button className="action" key={item.id} disabled={locked||!!reason} title={reason||`${costLabel(price.cost,batch.length)} / paid upgrade`} onClick={()=>setUpgradeTarget(item.id)}><AssetIcon id={`building_icon_${item.id}`}/><b>Upgrade {batch.length} to {item.name}</b><small>{reason||costLabel(price.cost,batch.length)}</small></button>;})}
+      {complete&&content.buildings.filter(item=>item.upgradeFrom===building.typeId).map(item=>{const batch=upgradeBatch,price=structureUpgrade(building.typeId as BuildingId,item.id)!,reason=batch.length>64?'Select at most 64 structures':!validUpgradeBatch?'Select completed matching structures with no active upgrade':view.self.age<item.minAge?`${ages[item.minAge]!.name} required`:contentRequirementLock(item,view,viewIndex)||missingLabel(price.cost,view.self.resources,batch.length);return <button className="action" key={item.id} disabled={locked||!!reason} title={reason||`${costLabel(price.cost,batch.length)} / paid upgrade`} onClick={()=>setUpgradeTarget(item.id)}><AssetIcon id={`building_icon_${item.id}`}/><b>Upgrade {batch.length} to {item.name}</b><small>{reason||costLabel(price.cost,batch.length)}</small></button>;})}
       {building?.upgrade&&<div className="upgrade-status"><b>Upgrading to {buildings[building.upgrade.targetTypeId]?.name}</b><progress max={1} value={building.upgrade.progress}/><small>{building.upgrade.state==='waiting'?'Waiting for a reachable builder':`${Math.floor(building.upgrade.progress*100)}% complete`}</small><button disabled={locked} onClick={()=>send({kind:'cancel_job',buildingId:building.id,jobId:building.upgrade!.jobId})}>Cancel upgrade</button></div>}
       {building && !complete && <button className="action" aria-label="Cancel foundation" disabled={locked} title={`Estimated refund: ${refundLabel(definition!.cost, building.progress ?? 0, !building.pendingConstruction, balance.rules.unfinishedCancelRefundFraction)}`} onClick={() => send({ kind: 'cancel_foundation', foundationId: building.id })}><span className="action-icon">×</span><b>{building.pendingConstruction ? 'Cancel planned site' : 'Cancel construction'}</b><small>Refund ≈ {refundLabel(definition!.cost, building.progress ?? 0, !building.pendingConstruction, balance.rules.unfinishedCancelRefundFraction)}</small></button>}
       {complete && building.typeId === 'farm' && <div className="farm-actions"><b>{Math.floor(building.amount ?? 0)} food remaining</b><span>{building.farmState === 'reseeding' ? `Reseeding ${Math.floor((building.reseedProgress ?? 0) * 100)}%` : building.farmState === 'exhausted' ? 'Field exhausted' : building.farmerAssigned ? 'A villager is assigned to this field' : 'One farmer per field'}</span><button className="quiet-button" aria-label="Assign farmer" disabled={locked || !nearestWorker || building.farmerAssigned || building.farmState !== 'ready'} onClick={() => nearestWorker && send({ kind: 'gather', unitIds: [nearestWorker.id], targetId: building.id, queued: false })}>Assign villager to farm</button><button className="quiet-button" aria-label="Reseed farm" disabled={locked || !nearestWorker || building.farmState !== 'exhausted' || !!missingLabel(definition!.reseedCost!, view.self.resources)} title={definition?.reseedCost ? `${costLabel(definition.reseedCost)} · ${definition.reseedSeconds}s of worker construction` : ''} onClick={() => nearestWorker && send({ kind: 'reseed_farm', farmId: building.id, builderId: nearestWorker.id })}>Reseed · {costLabel(definition!.reseedCost!)}</button></div>}
       {complete && building.typeId === 'market' && <Market view={view} marketId={building.id} locked={locked} send={send} />}
-      {!building && unitIds.length > 0 && (!workers.length || palette === 'orders') && <CombatOrders view={view} selection={view.entities.filter((entity) => selectedIds.includes(entity.id))} locked={locked} mode={orderMode} setMode={setOrderMode} send={send} />}
+      {!building && unitIds.length > 0 && (!workers.length || palette === 'orders') && <CombatOrders view={view} selection={actionSelection} locked={locked} mode={orderMode} setMode={setOrderMode} send={send} />}
       {complete && building.typeId.endsWith('_gate') && <div className="gate-controls"><b>{building.gateOpen ? 'Passage open' : 'Passage closed'}</b><label>Gate mode<select aria-label="Gate mode" value={building.gateMode ?? 'AUTO'} disabled={locked} onChange={(event) => send({ kind: 'set_gate_mode', gateId: building.id, mode: event.target.value as 'AUTO' | 'LOCKED' | 'OPEN' })}><option value="AUTO">Auto · friendly approach</option><option value="LOCKED">Locked · keep closed</option><option value="OPEN">Open · everyone can pass</option></select></label><small>Closing waits for a clear passage. Enemies can follow through any open gate.</small></div>}
       {!workers.length && !unitIds.length && !building && <p className="selection-help">Select a villager to build or repair.<br />Select a producer to train units.</p>}
     </div>
@@ -91,6 +134,7 @@ export function EconomyActions({ view, selected, selectedIds, workers, locked, p
       {building.hp < building.maxHp && <button className="quiet-button" disabled={locked || !nearestWorker} title="Assign an available villager; repair consumes resources in proportion to HP restored" onClick={() => nearestWorker && send({ kind: 'repair', unitIds: [nearestWorker.id], targetId: building.id, queued: false })}>Repair building</button>}
       <button className="quiet-button demolish-button" disabled={locked || !!building.demolitionTicksRemaining} onClick={() => setDemolish(building.id)}>{building.demolitionTicksRemaining ? `Demolition: ${Math.ceil(building.demolitionTicksRemaining / balance.rules.simulationHz)}s` : 'Demolish'}</button>
     </div>}
+    </div>
     <div className="receipt" aria-live="polite">{pendingCount > 0 ? `${pendingCount} order${pendingCount > 1 ? 's' : ''} awaiting receipt` : receipt || 'Orders are validated by the host.'}</div>
     {upgradeTarget&&building&&upgradePrice&&<div className="dialog-overlay"><section ref={upgradeModal} className="game-dialog" role="dialog" aria-modal="true" aria-labelledby="upgrade-heading"><h2 id="upgrade-heading">Upgrade selected structures?</h2><p>{buildings[upgradeTarget]!.name} / {upgradeBatch.length} structures / {costLabel(upgradePrice.cost,upgradeBatch.length)}</p><p>The entire batch is accepted together. Builders perform the work; the current defenses remain operational.</p><button className="primary" disabled={locked||!validUpgradeBatch||!!missingLabel(upgradePrice.cost,view.self.resources,upgradeBatch.length)} onClick={()=>{send({kind:'upgrade_structure',buildingIds:selectedIds,targetTypeId:upgradeTarget});setUpgradeTarget(null);}}>Confirm paid upgrade</button><button data-modal-initial-focus className="quiet-button" onClick={()=>setUpgradeTarget(null)}>Keep current structures</button></section></div>}
     {demolish && <div className="dialog-overlay"><section ref={demolishModal} className="game-dialog" role="dialog" aria-modal="true" aria-labelledby="demolish-heading"><span className="eyebrow">REMOVE A STRUCTURE</span><h2 id="demolish-heading">Demolish this building?</h2><p>Demolition takes {balance.rules.demolitionSeconds} seconds and returns no resources. Paid production in this building is lost.</p><button className="primary" onClick={() => { send({ kind: 'demolish', buildingId: demolish }); setDemolish(null); }}>Confirm demolition<span>↗</span></button><button data-modal-initial-focus className="quiet-button" onClick={() => setDemolish(null)}>Keep building</button></section></div>}

@@ -1,5 +1,5 @@
 import {describe,expect,it} from 'vitest';
-import {balance,buildings,units,technologies,effectiveUnit,effectiveBuilding,legendaryExpansion,resolveRuleset,structureUpgrade,PROTOCOL_VERSION,type BuildingId,type UnitId,type GameplayCommand,type MaximumAge,type ResourceBank} from '@frontier/shared';
+import {balance,buildings,units,technologies,effectiveUnit,effectiveBuilding,legendaryExpansion,resolveRuleset,structureUpgrade,PROTOCOL_VERSION,validateClientCommand,type BuildingId,type UnitId,type GameplayCommand,type MaximumAge,type ResourceBank} from '@frontier/shared';
 import {createSimulation,createLiveSimulation,Simulation,type Unit,type Building} from '../src/index.js';
 import {WardSystem,absorbWard} from '../src/legendary-mechanics.js';
 import {exportSimulationSave,restoreSimulation} from '../src/persistence.js';
@@ -8,6 +8,7 @@ import {fortificationObstacles} from '../src/fortifications.js';
 import {Navigation} from '../src/navigation.js';
 import {damageAmount,projectilePosition} from '../src/combat.js';
 import {PathScheduler} from '../src/path-scheduler.js';
+import {buildingPlacementCommand,resolveBuildingPlacement} from '../../../apps/client/src/buildingPlacement.js';
 import {constructionReconnaissance,caretakerCommands,emptyCaretakerMemory} from '../src/caretaker.js';
 
 const hz=balance.rules.simulationHz,scale=balance.rules.resourceScale;
@@ -26,6 +27,38 @@ function building(sim:Simulation,typeId:BuildingId,xMm:number,zMm:number,ownerId
 function unit(sim:Simulation,typeId:UnitId,xMm:number,zMm:number,ownerId='a'):Unit{const def=units[typeId],u:Unit={id:`legendary_${++serial}`,kind:'unit',typeId,ownerId,xMm,zMm,hp:def.maxHp,maxHp:def.maxHp,orders:[],path:[],pathRevision:0,orderRevision:0,repathAtTick:0,cargo:{resource:null,amount:0},gatherRemainder:0,cooldown:0,stance:'stand_ground',...(def.deploySeconds?{deploymentState:'packed' as const}:{})};sim.state.entities[u.id]=u;return u;}
 function send(sim:Simulation,command:GameplayCommand,playerId='a'){const sequence=sim.state.economies[playerId]!.lastClientSequence+1;return sim.command(playerId,{protocolVersion:PROTOCOL_VERSION,matchId:sim.state.matchId,matchEpoch:sim.state.matchEpoch,clientCommandId:`${playerId}_${sequence}`,clientSequence:sequence,command});}
 const identity={engineBuildHash:'a'.repeat(64),runtimeProfile:{nodeVersion:process.version,platform:process.platform,arch:process.arch}};
+
+it.each([0,90] as const)('admits normal gate placement over a five-wall run at %s degrees through the validated command path',rotation=>{
+  const {sim}=fixture(),center={xMm:41000,zMm:41000};
+  const walls=[-2,-1,0,1,2].map(offset=>building(sim,'bastion_wall',center.xMm+(rotation===0?offset*2000:0),center.zMm+(rotation===90?offset*2000:0)));
+  const worker=unit(sim,'villager',rotation===0?41000:34000,rotation===90?41000:34000);
+  unit(sim,'scout',rotation===0?41000:47000,rotation===90?41000:47000);sim.step();
+  const view=sim.view('a'),placement=resolveBuildingPlacement(view,'bastion_gate',center,rotation===0?90:0),command=buildingPlacementCommand('bastion_gate',placement,[worker.id],false)!;
+  expect(command.kind).toBe('replace_wall_with_gate');
+  const envelope={protocolVersion:PROTOCOL_VERSION,matchId:sim.state.matchId,matchEpoch:sim.state.matchEpoch,clientCommandId:'place_gate',clientSequence:1,command};
+  expect(validateClientCommand(envelope)).toBe(true);
+  const bank=structuredClone(sim.state.economies.a!.resources),receipt=sim.command('a',envelope);expect(receipt.status,receipt.code).toBe('accepted');
+  const gate=Object.values(sim.state.entities).find((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='bastion_gate')!;
+  expect(gate).toMatchObject({...center,rotation,work:0,ownerId:'a'});expect(gate.gateOpen).toBeFalsy();
+  expect(walls.every(wall=>!sim.state.entities[wall.id])).toBe(true);expect(worker.orders[0]).toMatchObject({kind:'build',targetId:gate.id});
+  for(const resource of balance.resourceOrder)expect(sim.state.economies.a!.resources[resource]).toBe(bank[resource]-buildings.bastion_gate.cost[resource]*scale);
+  expect(sim.command('a',envelope)).toEqual(receipt);
+  expect(Object.values(sim.state.entities).filter(entity=>entity.typeId==='bastion_gate')).toHaveLength(1);
+  for(const resource of balance.resourceOrder)expect(sim.state.economies.a!.resources[resource]).toBe(bank[resource]-buildings.bastion_gate.cost[resource]*scale);
+});
+
+it('rejects a stale legendary gate preview atomically when a wall is no longer eligible',()=>{
+  const {sim}=fixture(),center={xMm:41000,zMm:41000};
+  const walls=[-2,-1,0,1,2].map(offset=>building(sim,'bastion_wall',center.xMm+offset*2000,center.zMm));
+  const worker=unit(sim,'villager',41000,34000);sim.step();
+  const command=buildingPlacementCommand('bastion_gate',resolveBuildingPlacement(sim.view('a'),'bastion_gate',center,90),[worker.id],false)!;
+  for(const changes of [{ownerId:'b'},{work:0},{typeId:'stone_wall' as const},{zMm:43000}]){
+    const target=walls[2]!,prior=structuredClone(target);Object.assign(target,changes);
+    const entities=structuredClone(sim.state.entities),bank=structuredClone(sim.state.economies.a!.resources);
+    expect(send(sim,command).code).toBe('INVALID_GATE_REPLACEMENT');
+    expect(sim.state.entities).toEqual(entities);expect(sim.state.economies.a!.resources).toEqual(bank);Object.assign(target,prior);
+  }
+});
 
 describe('Legendary authoritative mechanics',()=>{
   it('gates age caps and legally purchases each sequential later age with exact costs',()=>{

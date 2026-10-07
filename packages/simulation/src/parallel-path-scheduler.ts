@@ -4,7 +4,7 @@ import { createOwnedNavigation } from './owned-navigation.js';
 import { createNativePathCheckpointScope, claimNativeSerializedPathCheckpoint, decodeNativeSerializedPathCheckpoint, discardNativeSerializedPathCheckpoint, type NativeSerializedPathCheckpoint, type NativePathCheckpoint } from './checkpoint-native.js';
 import { PathPlanningCensus, summarizePathQueue, type PathQueueTask } from './path-diagnostics.js';
 import { computeLocalPathQuery, type LocalPathQuery, type LocalPathResult } from './movement.js';
-import { PathScheduler, PATH_TASK_LIMIT, canonicalPathState, pathProfileGrants, preparePathCheckpointMessage, postPathCheckpointMessage, discardPathCheckpointMessage, type PreparedPathCheckpointMessage, type PathCheckpointEnvelope, type PathDiagnosticClock, type PathPlanningDiagnostics, type PathProfileGrant, type PathRequest, type PathResult, type PathSchedulerState, type PathTaskMirror, type PathWorkReport, type RegionStamp } from './path-scheduler.js';
+import { PathScheduler, PATH_TASK_LIMIT, canonicalPathState, pathInvalidationClearances, pathInvalidationRegions, pathProfileGrants, preparePathCheckpointMessage, postPathCheckpointMessage, discardPathCheckpointMessage, type PreparedPathCheckpointMessage, type PathCheckpointEnvelope, type PathDiagnosticClock, type PathPlanningDiagnostics, type PathProfileGrant, type PathRequest, type PathResult, type PathSchedulerState, type PathTaskMirror, type PathWorkReport, type RegionStamp } from './path-scheduler.js';
 import { SharedPathJobs } from './shared-path-jobs.js';
 import { MessagePort } from 'node:worker_threads';
 
@@ -14,7 +14,7 @@ export interface PathGeometryUpdate {profile:string;revision:number;widthMm:numb
 export function pathGeometryEntries(obstacles:readonly Obstacle[]):[string,Obstacle][]{
   const occurrences=new Map<string,number>();return obstacles.map(obstacle=>{const occurrence=occurrences.get(obstacle.id)??0;occurrences.set(obstacle.id,occurrence+1);return [`${obstacle.id}:${occurrence}`,obstacle];});
 }
-export type PathPlanningOperation = {type:'request';request:PathRequest}|{type:'cancel';profile:string;unitId:string}|{type:'invalidate';profile:string;rectangles:TerrainRectangle[]};
+export type PathPlanningOperation = {type:'request';request:PathRequest}|{type:'cancel';profile:string;unitId:string}|{type:'invalidate';profile:string;rectangles:TerrainRectangle[];clearanceMm?:number};
 export interface PathPlanningBatch {batchId:number;grants:PathProfileGrant[];operations:PathPlanningOperation[];geometry:PathGeometryUpdate[];localQueries?:LocalPathQuery[];tick?:number;observeRestarts?:true}
 export interface PathPlanningReply {batchId:number;report:PathWorkReport;mirrors:PathTaskMirror[];localResults?:LocalPathResult[];restarted?:string[]}
 export interface PathPlanningCapturedReply {reply:PathPlanningReply;state:PathSchedulerState}
@@ -58,12 +58,12 @@ export function measurePathCoordinator<T>(executor:Pick<PathPlanningExecutor,'ob
 export function partitionPathState(state:PathSchedulerState,profiles:readonly string[]):PathSchedulerState{
   const own=new Set(profiles);
   const shared=state.sharedJobs;
-  return canonicalPathState(structuredClone({version:1,tasks:state.tasks.filter(task=>own.has(task.profile)),regions:state.regions.filter(region=>own.has(region.profile)),routes:state.routes.filter(([,route])=>own.has(route.profile)),revisions:Object.fromEntries(Object.entries(state.revisions).filter(([key])=>own.has(key.slice(0,key.lastIndexOf(':'))))),cursor:state.cursor,profileCursors:Object.fromEntries(Object.entries(state.profileCursors??{}).filter(([profile])=>own.has(profile))),...(state.priority?{priority:{tick:state.priority.tick,profiles:Object.fromEntries(Object.entries(state.priority.profiles).filter(([profile])=>own.has(profile)))}}:{}),...(shared?{sharedJobs:{geometryVersions:Object.fromEntries(Object.entries(shared.geometryVersions).filter(([profile])=>own.has(profile))),registry:{version:1,serials:Object.fromEntries(Object.entries(shared.registry.serials).filter(([profile])=>own.has(profile))),waiting:shared.registry.waiting.filter(member=>own.has(member.request.profile)),jobs:shared.registry.jobs.filter(job=>own.has(job.frontier.profile))}}}:{})}));
+  return canonicalPathState(structuredClone({version:1,tasks:state.tasks.filter(task=>own.has(task.profile)),regions:state.regions.filter(region=>own.has(region.profile)),routes:state.routes.filter(([,route])=>own.has(route.profile)),revisions:Object.fromEntries(Object.entries(state.revisions).filter(([key])=>own.has(key.slice(0,key.lastIndexOf(':'))))),cursor:state.cursor,profileCursors:Object.fromEntries(Object.entries(state.profileCursors??{}).filter(([profile])=>own.has(profile))),...(state.invalidationClearances?{invalidationClearances:Object.fromEntries(Object.entries(state.invalidationClearances).filter(([profile])=>own.has(profile)))}:{}),...(state.priority?{priority:{tick:state.priority.tick,profiles:Object.fromEntries(Object.entries(state.priority.profiles).filter(([profile])=>own.has(profile)))}}:{}),...(shared?{sharedJobs:{geometryVersions:Object.fromEntries(Object.entries(shared.geometryVersions).filter(([profile])=>own.has(profile))),registry:{version:1,serials:Object.fromEntries(Object.entries(shared.registry.serials).filter(([profile])=>own.has(profile))),waiting:shared.registry.waiting.filter(member=>own.has(member.request.profile)),jobs:shared.registry.jobs.filter(job=>own.has(job.frontier.profile))}}}:{})}));
 }
 export function mergePathStates(states:readonly PathSchedulerState[]):PathSchedulerState{
   const priorities=states.flatMap(state=>state.priority?[state.priority]:[]);
   const shared=states.flatMap(state=>state.sharedJobs?[state.sharedJobs]:[]),compare=(a:string,b:string)=>a<b?-1:a>b?1:0;
-  return canonicalPathState({version:1,tasks:states.flatMap(state=>state.tasks),regions:states.flatMap(state=>state.regions),routes:states.flatMap(state=>state.routes),revisions:Object.assign({},...states.map(state=>state.revisions)),cursor:0,profileCursors:Object.assign({},...states.map(state=>state.profileCursors??{})),...(priorities.length?{priority:{tick:Math.max(...priorities.map(priority=>priority.tick)),profiles:Object.assign({},...priorities.map(priority=>priority.profiles))}}:{}),...(shared.length?{sharedJobs:{geometryVersions:Object.assign({},...shared.map(value=>value.geometryVersions)),registry:{version:1,serials:Object.fromEntries(Object.entries(Object.assign({},...shared.map(value=>value.registry.serials)) as Record<string,number>).sort(([a],[b])=>compare(a,b))),waiting:shared.flatMap(value=>value.registry.waiting).sort((a,b)=>compare(a.request.profile,b.request.profile)),jobs:shared.flatMap(value=>value.registry.jobs).sort((a,b)=>compare(a.frontier.profile,b.frontier.profile))}}}:{})});
+  return canonicalPathState({version:1,tasks:states.flatMap(state=>state.tasks),regions:states.flatMap(state=>state.regions),routes:states.flatMap(state=>state.routes),revisions:Object.assign({},...states.map(state=>state.revisions)),cursor:0,profileCursors:Object.assign({},...states.map(state=>state.profileCursors??{})),...(states.some(state=>state.invalidationClearances)?{invalidationClearances:Object.assign({},...states.map(state=>state.invalidationClearances??{}))}:{}),...(priorities.length?{priority:{tick:Math.max(...priorities.map(priority=>priority.tick)),profiles:Object.assign({},...priorities.map(priority=>priority.profiles))}}:{}),...(shared.length?{sharedJobs:{geometryVersions:Object.assign({},...shared.map(value=>value.geometryVersions)),registry:{version:1,serials:Object.fromEntries(Object.entries(Object.assign({},...shared.map(value=>value.registry.serials)) as Record<string,number>).sort(([a],[b])=>compare(a,b))),waiting:shared.flatMap(value=>value.registry.waiting).sort((a,b)=>compare(a.request.profile,b.request.profile)),jobs:shared.flatMap(value=>value.registry.jobs).sort((a,b)=>compare(a.frontier.profile,b.frontier.profile))}}}:{})});
 }
 export function mergePathReplies(batchId:number,replies:readonly PathPlanningReply[]):PathPlanningReply{
   if(replies.some(reply=>reply.batchId!==batchId))throw new Error('STALE_PATH_BATCH');
@@ -104,7 +104,7 @@ export class PersistentPathPlanningKernel {
       if(!this.profiles.includes(profile))throw new Error('FOREIGN_PATH_OPERATION');
       if(operation.type==='request')this.scheduler.request(operation.request);
       else if(operation.type==='cancel')this.scheduler.cancel(operation.unitId);
-      else this.scheduler.invalidate(operation.profile,operation.rectangles);
+      else this.scheduler.invalidate(operation.profile,operation.rectangles,operation.clearanceMm);
     }
     const restarted=batch.observeRestarts?new Set<string>():undefined;
     if(restarted)this.scheduler.observeAttemptRestarts(unitId=>restarted.add(unitId));
@@ -158,6 +158,11 @@ export function createNativePathPlanningKernel(profiles:readonly string[],state:
 export class RemotePathScheduler {
   private mirrors=new Map<string,PathTaskMirror>();
   private revisions:Record<string,number>={};
+  // Workers may retain geometry caches after a request completes or is canceled.
+  // Keep one conservative bound per profile, rather than copying those caches
+  // or their whole revision maps on each reply. The worker checkpoints the same
+  // bound so a canceled giant cannot make cold replay use a smaller envelope.
+  private invalidationClearances=new Map<string,number>();
   private geometry=new Map<string,PathPlanningGeometry>();
   private operations:PathPlanningOperation[]=[];
   private batchId=0;
@@ -175,6 +180,7 @@ export class RemotePathScheduler {
   private constructor(private readonly profiles:readonly string[],private readonly executor:PathPlanningExecutor){}
   static async create(profiles:readonly string[],state:PathSchedulerState,geometry:readonly PathPlanningGeometry[],executor:PathPlanningExecutor):Promise<RemotePathScheduler>{
     const value=new RemotePathScheduler([...profiles],executor);
+    value.restoreInvalidationClearances(state);
     value.revisions=structuredClone(state.revisions);value.cachedState=structuredClone(state);
     for(const item of geometry)value.geometry.set(item.profile,{...item,obstacles:item.obstacles.map(obstacle=>({...obstacle}))});
     value.accept(await executor.initialize(profiles,state,geometry),0);return value;
@@ -182,9 +188,13 @@ export class RemotePathScheduler {
   static createSynchronous(profiles:readonly string[],state:PathSchedulerState,geometry:readonly PathPlanningGeometry[]):RemotePathScheduler{
     const kernel=new PersistentPathPlanningKernel(profiles,state,geometry),executor:PathPlanningExecutor={initialize:async()=>kernel.reply(),advance:async batch=>kernel.advance(batch),advanceSynchronous:batch=>kernel.advance(batch),capture:async()=>kernel.exportState(),captureSynchronous:()=>kernel.exportState(),dispose:async()=>{}};
     const value=new RemotePathScheduler([...profiles],executor);value.revisions=structuredClone(state.revisions);value.cachedState=structuredClone(state);
+    value.restoreInvalidationClearances(state);
     for(const item of geometry)value.geometry.set(item.profile,{...item,obstacles:item.obstacles.map(obstacle=>({...obstacle}))});value.accept(kernel.reply(),0);return value;
   }
   private assertMutable():void{if(this.disposed)throw new Error('PATH_EXECUTOR_CLOSED');if(this.busy)throw new Error('PATH_BATCH_IN_PROGRESS');}
+  private restoreInvalidationClearances(state:PathSchedulerState):void{
+    this.invalidationClearances=new Map(Object.entries(pathInvalidationClearances(state)));
+  }
   private changed(operation:PathPlanningOperation):void{if(this.operations.length>=100000)throw new Error('PATH_OPERATION_QUEUE_FULL');this.operations.push(operation);this.cachedState=undefined;}
   request(request:PathRequest):void{
     this.assertMutable();
@@ -194,6 +204,7 @@ export class RemotePathScheduler {
     if(prior&&(prior.request.orderRevision>request.orderRevision||(prior.request.id===request.id&&prior.request.orderRevision===request.orderRevision)))return;
     if(!prior&&this.mirrors.size>=PATH_TASK_LIMIT)throw new Error('PATH_TASK_LIMIT');
     const owned=structuredClone(request);this.changed({type:'request',request:owned});
+    this.invalidationClearances.set(request.profile,Math.max(this.invalidationClearances.get(request.profile)??1000,request.radiusMm));
     this.mirrors.set(request.unitId,{request:owned,result:{status:'pending',id:request.id,orderRevision:request.orderRevision},direct:true,usedRegions:[],connectorRegions:[]});
     this.pathCensus?.requested(owned,!!prior);
   }
@@ -211,14 +222,12 @@ export class RemotePathScheduler {
   hasRequest(unitId:string):boolean{return this.mirrors.has(unitId);}
   invalidate(profile:string,rectangles:readonly TerrainRectangle[]):void{
     this.assertMutable();if(!this.profiles.includes(profile))throw new Error('UNKNOWN_PATH_PROFILE');
-    this.changed({type:'invalidate',profile,rectangles:structuredClone([...rectangles])});
-    const changed=new Set<string>();
-    for(const rect of rectangles)for(let z=Math.floor((rect.zMm-1000)/16000);z<=Math.floor((rect.zMm+rect.depthMm+1000)/16000);z++)for(let x=Math.floor((rect.xMm-1000)/16000);x<=Math.floor((rect.xMm+rect.widthMm+1000)/16000);x++)if(x>=0&&z>=0)changed.add(`${x},${z}`);
+    const clearanceMm=this.invalidationClearances.get(profile)??1000,changed=pathInvalidationRegions(rectangles,clearanceMm);
+    this.changed({type:'invalidate',profile,rectangles:structuredClone([...rectangles]),clearanceMm});
     for(const region of changed){const key=`${profile}:${region}`;this.revisions[key]=(this.revisions[key]??0)+1;}
-    this.invalidateMirrors(profile,rectangles,changed);
+    this.invalidateMirrors(profile,rectangles,clearanceMm,changed);
   }
-  private invalidateMirrors(profile:string,rectangles:readonly TerrainRectangle[],changed?:ReadonlySet<string>,diagnostics=true):void{
-    if(!changed){const regions=new Set<string>();for(const rect of rectangles)for(let z=Math.floor((rect.zMm-1000)/16000);z<=Math.floor((rect.zMm+rect.depthMm+1000)/16000);z++)for(let x=Math.floor((rect.xMm-1000)/16000);x<=Math.floor((rect.xMm+rect.widthMm+1000)/16000);x++)if(x>=0&&z>=0)regions.add(`${x},${z}`);changed=regions;}
+  private invalidateMirrors(profile:string,rectangles:readonly TerrainRectangle[],clearanceMm:number,changed:ReadonlySet<string>=pathInvalidationRegions(rectangles,clearanceMm),diagnostics=true):void{
     for(const mirror of [...this.mirrors.values()])if(mirror.request.profile===profile){
       const task=mirror.request;
       // Only the worker owns the corner/endpoint preparation frontier. Its
@@ -255,7 +264,7 @@ export class RemotePathScheduler {
     if(preserveQueued)for(const operation of this.operations){
       if(operation.type==='cancel')this.mirrors.delete(operation.unitId);
       else if(operation.type==='request'){const request=operation.request;this.mirrors.set(request.unitId,{request,result:{status:'pending',id:request.id,orderRevision:request.orderRevision},direct:true,usedRegions:[],connectorRegions:[]});}
-      else this.invalidateMirrors(operation.profile,operation.rectangles,undefined,false);
+      else this.invalidateMirrors(operation.profile,operation.rectangles,operation.clearanceMm??1000,undefined,false);
     }
     this.localResults=reply.localResults??[];
   }

@@ -19,6 +19,14 @@ Zero path/visibility workers selects inline execution. More workers can add comm
 
 Host diagnostics expose worker activity, queues, timing and recovery state. Measure command latency, simulation progress, publication, browser response and model requests separately.
 
+Automatic speed recovery also requires available physical RAM: at least the larger
+of 512 MiB or 3% of host memory. This existing safeguard prevents a recovery trial
+from adding work while Windows is paging heavily. Host diagnostics report when
+memory pressure blocks recovery. Close unused applications or browser tabs on the
+host to free memory; keep the game open. Available RAM alone does not guarantee
+recovery: sustained processing headroom and acceptable queue delays are also
+required. More worker threads do not resolve a memory shortage.
+
 ## Reproducible measurements
 
 Build before using compiled harnesses:

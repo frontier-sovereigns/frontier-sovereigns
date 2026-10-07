@@ -779,7 +779,12 @@
             "pattern": "^[A-Za-z0-9_-]+$"
           },
           "minItems": 3,
-          "maxItems": 3
+          "maxItems": 5,
+          "uniqueItems": true,
+          "oneOf": [
+            { "minItems": 3, "maxItems": 3 },
+            { "minItems": 5, "maxItems": 5 }
+          ]
         },
         "queued": {
           "type": "boolean"

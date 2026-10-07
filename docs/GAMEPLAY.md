@@ -43,9 +43,26 @@ These are default bindings; **Settings & controls** supports remapping.
 
 Hovering previews the contextual action. The explicit Attack tool rejects allied targets. Stances govern automatic engagement; Hold/Stand Ground keeps its movement restrictions.
 
+Economy, Military, Fortifications and Orders share a scrollable action area. Use
+the mouse wheel over that area, or focus it and use Home/End, Page Up/Down or the
+arrow keys. Building prerequisites still apply to locked cards. Monument appears
+once in Military, at the match's required age.
+
 ## Defenses and combat
 
-Drag connected walls from the fortification palette; Ctrl changes the bend axis. Place gates on clear ground with Q/E rotation, or use the separate replacement action on matching completed wall segments. Original gates replace three segments; broad later gates replace five.
+Drag connected walls from the fortification palette; Ctrl changes the bend axis.
+Choose a gate and click the center of a gap or a straight run of your completed
+matching walls. The preview aligns to the wall direction; clicking a completed
+run replaces it at the full gate cost. Original gates replace three segments;
+broad later gates replace five. Q/E rotates gates on open ground, and the separate
+replacement action remains available. Mixed, unfinished or ambiguous wall spans
+cannot be replaced.
+
+Assigned builders share the paid wall batch and can work on another segment when
+one is blocked. A builder inside a planned footprint walks out before building.
+Eligible idle Villagers can finish nearby abandoned paid walls. Stop/Hold,
+persistent AI Pilot protection and unrelated active orders remain in effect;
+explicitly held units blocking a site still need an order from their owner.
 
 A completed gate supports AUTO, LOCKED and OPEN. An open passage can admit enemies. Later ages add larger citadels, broader fortifications, wards, siege weapons and colossal units. Deployment, packing, ammunition and support structures impose ordinary costs and tactical constraints; inspect each unit/building's controls and requirements.
 

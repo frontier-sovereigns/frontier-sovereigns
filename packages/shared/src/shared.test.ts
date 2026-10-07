@@ -13,6 +13,15 @@ import validPlan from '../../../examples/ai-plan.valid.json';
 import invalidPlan from '../../../examples/ai-plan.invalid-extra-field.json';
 import { balance, buildings, canonicalJson, contentHash, parseClientSocketMessage, sha256, TEAM_IDENTITIES, technologies, units, validateAiPlan, validateBootstrap, validateClientCommand, validateConsistentPlayerView, validateContent, validateHostRecoveryResponse, validateJoin, validateLoaded, validateLobbyConfig, validateReady, validateRejoinInviteResponse, validateSessionResponse, validatePlayerView, validatePlayerViewDelta, validateReplayStepResponse, validateServerSocketMessage, validateTeamAssignmentRequest, type PlayerView } from './index.js';
 
+it('admits exactly the catalogue gate replacement spans and rejects duplicate wall references',()=>{
+  for(const length of [0,1,2,3,4,5,6,64]){
+    const envelope={...validCommand,command:{kind:'replace_wall_with_gate',builderIds:['builder'],wallIds:Array.from({length},(_,index)=>`wall_${index}`),queued:false}};
+    expect(validateClientCommand(envelope),`${length} wall references`).toBe(length===3||length===5);
+  }
+  for(const length of [3,5])expect(validateClientCommand({...validCommand,command:{kind:'replace_wall_with_gate',builderIds:['builder'],wallIds:Array.from({length},()=> 'duplicate_wall'),queued:false}})).toBe(false);
+  expect(new Set(Object.values(buildings).filter(definition=>definition.defaultGateMode).map(definition=>definition.wallEquivalentCells))).toEqual(new Set([3,5]));
+});
+
 describe('increased aggregate structure capacity',()=>{
   it('retains bounded commands and special caps while permitting tenfold aggregate construction',()=>{
     expect(balance.rules.maxNonWallBuildingsPerPlayer).toBe(800);

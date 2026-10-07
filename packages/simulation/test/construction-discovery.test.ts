@@ -15,6 +15,97 @@ function site(sim:Simulation){return Object.values(sim.state.entities).find((e):
 const identity={engineBuildHash:'a'.repeat(64),runtimeProfile:{nodeVersion:process.version,platform:process.platform,arch:process.arch}};
 
 describe('Explored construction authority',()=>{
+  it.each([50,300,600] as const)('walks out of a queued wall footprint and preserves paid work and queued movement at %ims',interval=>{
+    const {sim,worker}=fixture(),destination={xMm:49000,zMm:49000},after={xMm:44000,zMm:44000},before={...sim.state.economies.a!.resources};
+    expect(send(sim,{kind:'move',unitIds:[worker.id],target:destination,queued:false}).status).toBe('accepted');
+    expect(send(sim,{kind:'build_wall',builderIds:[worker.id],material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24}],queued:true}).status).toBe('accepted');
+    expect(send(sim,{kind:'move',unitIds:[worker.id],target:after,queued:true}).status).toBe('accepted');
+    const walls=Object.values(sim.state.entities).filter((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall');
+    expect(walls).toHaveLength(3);expect(walls.every(wall=>wall.pendingConstruction)).toBe(true);
+    sim.state.movementCadenceTier=interval===600?2:0;
+    const payload=sim.capture(),live=interval===50?undefined:createLiveSimulation({...payload.options,authoritativeIntervalMs:300,factions:payload.state.factions,matchId:payload.state.matchId},payload);
+    let entered=false,currentWorker=worker,currentWalls=walls;
+    for(let tick=0;tick<1600&&currentWorker.orders.length;tick+=interval/50){
+      if(live)live.advanceFrame();else sim.step();
+      const state=live?.state??sim.state;currentWorker=state.entities[worker.id] as Unit;currentWalls=walls.map(wall=>state.entities[wall.id] as Building);
+      entered||=currentWorker.orders[0]?.kind==='build'&&currentWalls.some(wall=>wall.pendingConstruction&&Math.abs(currentWorker.xMm-wall.xMm)<1000&&Math.abs(currentWorker.zMm-wall.zMm)<1000);
+      for(const wall of currentWalls)if(!wall.pendingConstruction){const dx=Math.max(0,Math.abs(currentWorker.xMm-wall.xMm)-1000),dz=Math.max(0,Math.abs(currentWorker.zMm-wall.zMm)-1000);expect(Math.hypot(dx,dz)).toBeGreaterThanOrEqual(units.villager.collisionRadiusM*1000);}
+    }
+    expect(entered).toBe(true);expect(currentWalls.every(wall=>wall.work===wall.required)).toBe(true);expect(currentWorker.orders).toEqual([]);
+    expect(Math.hypot(currentWorker.xMm-after.xMm,currentWorker.zMm-after.zMm)).toBeLessThanOrEqual(100);
+    expect((live?.state??sim.state).economies.a!.resources).toEqual({...before,wood:before.wood-3*buildings.palisade_wall.cost.wood*balance.rules.resourceScale});
+  });
+  it('shares a paid wall batch when a teammate receives a different order without stealing that order',()=>{
+    const {sim,worker}=fixture(),other=unit(sim,'villager',19000,22000);
+    expect(send(sim,{kind:'build_wall',builderIds:[worker.id,other.id],material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24}],queued:false}).status).toBe('accepted');
+    const walls=Object.values(sim.state.entities).filter((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall'),ids=walls.map(wall=>wall.id).sort(),bank={...sim.state.economies.a!.resources};
+    expect([...worker.orders[0]!.wallTargets!].sort()).toEqual(ids);expect([...other.orders[0]!.wallTargets!].sort()).toEqual(ids);
+    expect(send(sim,{kind:'move',unitIds:[other.id],target:{xMm:24000,zMm:20000},queued:false}).status).toBe('accepted');
+    for(let tick=0;tick<1600&&!walls.every(wall=>wall.work===wall.required);tick++)sim.step();
+    expect(walls.every(wall=>wall.work===wall.required)).toBe(true);expect(Math.hypot(other.xMm-24000,other.zMm-20000)).toBeLessThanOrEqual(100);expect(other.orders).toEqual([]);expect(sim.state.economies.a!.resources).toEqual(bank);
+  });
+  it('works around a stopped friendly occupant, then resumes its paid segment after the owner moves it',()=>{
+    const {sim,worker}=fixture(),blocker=unit(sim,'scout',19000,22000);
+    expect(send(sim,{kind:'build_wall',builderIds:[worker.id],material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24}],queued:false}).status).toBe('accepted');
+    const walls=Object.values(sim.state.entities).filter((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall'),blocked=walls.find(wall=>wall.xMm===49000)!,others=walls.filter(wall=>wall!==blocked),bank={...sim.state.economies.a!.resources};
+    expect(send(sim,{kind:'move',unitIds:[blocker.id],target:{xMm:49000,zMm:49000},queued:false}).status).toBe('accepted');
+    for(let tick=0;tick<400&&blocker.orders.length;tick++)sim.step();
+    expect(blocker.orders).toEqual([]);expect(send(sim,{kind:'stop',unitIds:[blocker.id]}).status).toBe('accepted');
+    const stopped={xMm:blocker.xMm,zMm:blocker.zMm};
+    for(let tick=0;tick<1200&&!others.every(wall=>wall.work===wall.required);tick++){sim.step();expect({xMm:blocker.xMm,zMm:blocker.zMm}).toEqual(stopped);}
+    expect(others.every(wall=>wall.work===wall.required),JSON.stringify({worker,walls:walls.map(wall=>({id:wall.id,xMm:wall.xMm,work:wall.work,required:wall.required,pending:wall.pendingConstruction}))})).toBe(true);expect(blocked.work).toBe(0);expect(blocked.pendingConstruction).toBeDefined();expect(worker.orders[0]?.wallTargets).toContain(blocked.id);
+    expect(send(sim,{kind:'move',unitIds:[blocker.id],target:{xMm:44000,zMm:42000},queued:false}).status).toBe('accepted');
+    for(let tick=0;tick<500&&blocked.work<blocked.required;tick++)sim.step();
+    expect(blocked.work).toBe(blocked.required);expect(sim.state.economies.a!.resources).toEqual(bank);
+  });
+  it('recovers nearby orphaned paid walls at 600ms across a cold save without moving held or pinned units',async()=>{
+    const {sim,worker}=fixture();
+    expect(send(sim,{kind:'build_wall',builderIds:[worker.id],material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24},{x:27,z:24}],queued:false}).status).toBe('accepted');
+    const walls=Object.values(sim.state.entities).filter((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall'),bank={...sim.state.economies.a!.resources};
+    const pinnedWall=walls.pop()!;delete sim.state.control.a!.assistant!.releaseAfterIdle[pinnedWall.id];
+    expect(send(sim,{kind:'hold_position',unitIds:[worker.id]}).status).toBe('accepted');
+    const helper=unit(sim,'villager',45000,44000),pinned=unit(sim,'villager',47000,44000),foreign=unit(sim,'villager',51000,57000,'b');
+    helper.stance='defensive';helper.autoGather=true;pinned.autoGather=true;
+    expect(send(sim,{kind:'set_stance',unitIds:[pinned.id],stance:'defensive'}).status).toBe('accepted');
+    expect(send(sim,{kind:'hold_position',unitIds:[foreign.id]},'b').status).toBe('accepted');
+    const held=[worker,pinned,foreign].map(entity=>({id:entity.id,xMm:entity.xMm,zMm:entity.zMm,orders:structuredClone(entity.orders)}));
+    expect(sim.state.control.a!.assistant!.protectedEntityIds).toContain(pinned.id);
+    sim.state.movementCadenceTier=2;const payload=sim.capture(),live=createLiveSimulation({...payload.options,authoritativeIntervalMs:300,factions:payload.state.factions,matchId:payload.state.matchId},payload);
+    live.advanceFrame();await live.synchronizeCapture();const saved=exportSimulationSave(live,identity);
+    expect(validateSimulationSavePayload(saved.payload),JSON.stringify(validateSimulationSavePayload.errors)).toBe(true);
+    const cold=restoreLiveSimulation(saved,identity,{preserveEpoch:true});
+    for(let frame=0;frame<180&&!walls.every(wall=>{const current=live.state.entities[wall.id] as Building;return current.work===current.required;});frame++){
+      live.advanceFrame();cold.advanceFrame();
+      for(const before of held){const current=live.state.entities[before.id] as Unit;expect({id:current.id,xMm:current.xMm,zMm:current.zMm,orders:current.orders}).toEqual(before);}
+    }
+    expect(walls.every(wall=>{const current=live.state.entities[wall.id] as Building;return current.work===current.required;})).toBe(true);
+    expect(live.state.economies.a!.resources).toEqual(bank);expect(live.state.control.a!.assistant!.protectedEntityIds).toContain(pinned.id);
+    expect((live.state.entities[pinnedWall.id] as Building).work).toBe(0);expect(live.state.control.a!.assistant!.protectedEntityIds).toContain(pinnedWall.id);
+    await live.synchronizeCapture();await cold.synchronizeCapture();expect(cold.capture()).toEqual(live.capture());
+  });
+  it('retries two formerly occupied wall sites without alternating away from their expired retry targets',()=>{
+    const {sim,worker}=fixture();
+    expect(send(sim,{kind:'build_wall',builderIds:[worker.id],material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24}],queued:false}).status).toBe('accepted');
+    const walls=Object.values(sim.state.entities).filter((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall'),middle=walls.find(wall=>wall.xMm===51000)!;
+    // Legal post-admission occupancy of nonphysical plans isolates the retry
+    // boundary; the preceding case already exercises actual scout travel.
+    const blockers=[unit(sim,'scout',49000,49000),unit(sim,'scout',53000,49000)];
+    expect(send(sim,{kind:'stop',unitIds:blockers.map(blocker=>blocker.id)}).status).toBe('accepted');
+    for(let tick=0;tick<1000&&(!walls.filter(wall=>wall!==middle).every(wall=>wall.pendingConstruction?.blocked)||middle.work<middle.required);tick++)sim.step();
+    expect(middle.work).toBe(middle.required);expect(walls.filter(wall=>wall!==middle).every(wall=>wall.pendingConstruction?.blocked)).toBe(true);
+    for(const [index,blocker] of blockers.entries())expect(send(sim,{kind:'move',unitIds:[blocker.id],target:{xMm:44000+index*4000,zMm:42000},queued:false}).status).toBe('accepted');
+    const revision=worker.orderRevision??0;
+    for(let tick=0;tick<600&&!walls.every(wall=>wall.work===wall.required);tick++)sim.step();
+    expect(walls.every(wall=>wall.work===wall.required)).toBe(true);expect((worker.orderRevision??0)-revision).toBeLessThan(20);
+  });
+  it('redirects workers beyond the construction efficiency cap to other paid segments',()=>{
+    const {sim}=fixture(),crew=[...[-650,50,750].flatMap(dx=>[unit(sim,'villager',49000+dx,47650),unit(sim,'villager',49000+dx,50350)]),unit(sim,'villager',47650,49000)];
+    expect(send(sim,{kind:'build_wall',builderIds:crew.map(worker=>worker.id),material:'palisade',cells:[{x:24,z:24},{x:25,z:24},{x:26,z:24}],queued:false}).status).toBe('accepted');
+    const first=Object.values(sim.state.entities).find((entity):entity is Building=>entity.kind==='building'&&entity.typeId==='palisade_wall'&&entity.xMm===49000)!,initiallyAssigned=crew.filter(worker=>worker.orders[0]?.targetId===first.id);
+    expect(initiallyAssigned.length).toBeGreaterThan(balance.rules.constructionWorkerMultipliers.length);
+    let reassigned=false;for(let tick=0;tick<40&&!reassigned;tick++){sim.step();reassigned=first.work<first.required&&initiallyAssigned.some(worker=>worker.orders[0]?.kind==='build'&&worker.orders[0].targetId!==first.id);}
+    expect(reassigned).toBe(true);expect(first.work).toBeGreaterThan(0);expect(first.work).toBeLessThan(first.required);
+  });
   it('admits the same paid hidden site with or without an undisclosed obstruction, without revealing it',()=>{
     for(const obstructed of [false,true]){const {sim,worker}=fixture();if(obstructed)building(sim,'house',50000,50000,'b');unit(sim,'scout',55000,50000,'b');sim.step();const visibleBefore=[...sim.state.vision.a!.visible],bank=sim.state.economies.a!.resources.wood;expect(place(sim,worker).status).toBe('accepted');const planned=site(sim);expect(planned.pendingConstruction).toEqual({clearanceMm:0});expect(bank-sim.state.economies.a!.resources.wood).toBe(buildings.house.cost.wood*balance.rules.resourceScale);sim.step();expect(sim.state.vision.a!.visible).toEqual(visibleBefore);const own=sim.view('a'),foreign=sim.view('b');expect(own.entities.find(e=>e.id===planned.id)?.pendingConstruction).toBe(true);expect(foreign.entities.some(e=>e.id===planned.id)).toBe(false);expect(validatePlayerView(own),JSON.stringify(validatePlayerView.errors)).toBe(true);expect(validatePlayerView(foreign),JSON.stringify(validatePlayerView.errors)).toBe(true);}
   });

@@ -21,12 +21,13 @@ import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder';
 import '@babylonjs/core/Lights/Shadows/shadowGeneratorSceneComponent';
 import '@babylonjs/core/Culling/ray';
 const MeshBuilder = { CreateBox, CreateGround, CreateTorus, CreatePlane, CreateCylinder, CreatePolyhedron, CreateSphere };
-import { balance, buildings, units, legendaryExpansion, ridgeHeightAt, terrainHeightAt, terrainBuildable, resourcePlacementBounds, placementAreaDiscovered, type BuildingId, type Cell, type PlayerView, type Rotation, type TeamPing, type TerrainRegion, type ViewEntity } from '@frontier/shared';
+import { balance, buildings, units, legendaryExpansion, ridgeHeightAt, terrainHeightAt, terrainBuildable, resourcePlacementBounds, placementAreaDiscovered, type BuildingId, type Cell, type GameplayCommand, type PlayerView, type Rotation, type TeamPing, type TerrainRegion, type ViewEntity } from '@frontier/shared';
 
 import { MotionTrack, PresentationClock, ProgressTrack, GateTrack } from './MotionTrack';
 import { browserDeliveryDiagnostics, browserResponseProbe, observeResponseRender, type ResponseRenderEntity } from './BrowserResponseDiagnostics';
 import { AssetRenderer, loadAssetBundle, type AssetInstance } from './AssetRenderer';
 import { readPreferences, matchesHotkey, heldPanKey, suppressGameplayHotkeys, type Preferences } from './preferences';
+import { buildingPlacementCommand, resolveBuildingPlacement } from './buildingPlacement';
 
 export interface WorldTarget { id?: string; xMm: number; zMm: number }
 export interface WorldHover { target: WorldTarget; x: number; y: number }
@@ -44,7 +45,7 @@ export function configureRtsCameraControls(camera: ArcRotateCamera): void {
     ...camera.movement.input.inputMap.filter(entry => entry.source !== 'pointer'),
   ];
 }
-interface RenderEntity { asset: AssetInstance; entity: ViewEntity; wallMask: number; ambient?: AssetInstance; hitTick?: number; turretTick?:number; gateTick?: number; gateFrom?: number; gatePose?: number; gateHistory?:GateTrack; construction?:ProgressTrack; jobs?:Map<string,{kind:string;typeId:string;state:string;track:ProgressTrack}>; motion: MotionTrack; actionHistory?:(NonNullable<ViewEntity['visualAction']>&{presentedTick?:number})[]; moving: boolean; id: string; root: TransformNode; ring: Mesh; health: Mesh; healthFill: Mesh; wardBar?:Mesh; wardFill?:Mesh; healthEligible: boolean; from: Vector3; target: Vector3; received: number; hp: number }
+interface RenderEntity { asset: AssetInstance; entity: ViewEntity; staticResource: boolean; wallMask: number; ambient?: AssetInstance; hitTick?: number; turretTick?:number; gateTick?: number; gateFrom?: number; gatePose?: number; gateHistory?:GateTrack; construction?:ProgressTrack; jobs?:Map<string,{kind:string;typeId:string;state:string;track:ProgressTrack}>; motion: MotionTrack; actionHistory?:(NonNullable<ViewEntity['visualAction']>&{presentedTick?:number})[]; moving: boolean; id: string; root: TransformNode; ring: Mesh; health: Mesh; healthFill: Mesh; wardBar?:Mesh; wardFill?:Mesh; healthEligible: boolean; from: Vector3; target: Vector3; received: number; hp: number }
 
 /** Browser renderer for the host-verified original generated asset library. */
 export class World {
@@ -206,21 +207,7 @@ export class World {
       this.camera.target.z = Math.max(0, Math.min((this.view?.map.heightMm ?? 64000) / 1000, this.camera.target.z));
       const now = performance.now();
       const coarse = this.coarsePresentation(), presentationMs = coarse ? this.visualTick(now) * 1000 / balance.rules.simulationHz : 0;
-      for (const entry of this.rendered.values()) {
-        let trajectoryFacing = false;
-        if (this.streamActive !== false && entry.moving) {
-          const point = coarse ? entry.motion.sampleAt(presentationMs) : entry.motion.sample(now, this.view?.status === 'RUNNING', this.view?.simulationSpeed ?? 1);
-          const visible = this.visibleCells.has(Math.floor(point.z * 1000 / (this.view?.map.fogCellMm ?? 2000)) * this.fogColumns + Math.floor(point.x * 1000 / (this.view?.map.fogCellMm ?? 2000)));
-          entry.root.setEnabled(visible); entry.ring.setEnabled(visible && this.selected.includes(entry.id));
-          if (visible) {
-            if (coarse && Math.hypot(point.x - entry.root.position.x, point.z - entry.root.position.z) > .0001) { entry.root.rotation.y = Math.atan2(point.x - entry.root.position.x, point.z - entry.root.position.z); trajectoryFacing = true; }
-            entry.root.position.set(point.x, point.y, point.z);
-          }
-          entry.ring.position.set(entry.root.position.x, entry.root.position.y + 0.12, entry.root.position.z);
-        }
-        this.animate(entry, now, trajectoryFacing);
-        entry.health.setEnabled(entry.healthEligible && (this.keys.has(this.preferences.bindings.health) || this.selected.includes(entry.id)));
-      }
+      this.animateEntities(now, coarse, presentationMs);
       for (const projectile of this.projectiles.values()) {
         if (this.streamActive !== false) { const point = coarse ? projectile.motion.sampleAt(presentationMs) : projectile.motion.sample(now, this.view?.status === 'RUNNING', this.view?.simulationSpeed ?? 1); projectile.mesh.position.set(point.x, point.y, point.z); }
         projectile.mesh.setEnabled(this.visibleCells.has(Math.floor(projectile.mesh.position.z * 1000 / (this.view?.map.fogCellMm ?? 2000)) * this.fogColumns + Math.floor(projectile.mesh.position.x * 1000 / (this.view?.map.fogCellMm ?? 2000))));
@@ -368,6 +355,28 @@ export class World {
     const elapsedGameMs = Math.min(100, Math.max(0, now - this.receivedViewAt)) * (view.simulationSpeed ?? 1);
     return view.tick + (this.streamActive && view.status === 'RUNNING' ? elapsedGameMs * balance.rules.simulationHz / 1000 : 0);
   }
+  private animateEntities(now: number, coarse: boolean, presentationMs: number): void {
+    for (const entry of this.rendered.values()) {
+      // Natural resources have no animated tracks or health display. Their
+      // appearance, fog memory, selection and depletion still update on every
+      // committed view; static copies need no display-frame pose allocations.
+      if (entry.staticResource) continue;
+      let trajectoryFacing = false;
+      if (this.streamActive !== false && entry.moving) {
+        const point = coarse ? entry.motion.sampleAt(presentationMs) : entry.motion.sample(now, this.view?.status === 'RUNNING', this.view?.simulationSpeed ?? 1);
+        const visible = this.visibleCells.has(Math.floor(point.z * 1000 / (this.view?.map.fogCellMm ?? 2000)) * this.fogColumns + Math.floor(point.x * 1000 / (this.view?.map.fogCellMm ?? 2000)));
+        entry.root.setEnabled(visible); entry.ring.setEnabled(visible && this.selected.includes(entry.id));
+        if (visible) {
+          if (coarse && Math.hypot(point.x - entry.root.position.x, point.z - entry.root.position.z) > .0001) { entry.root.rotation.y = Math.atan2(point.x - entry.root.position.x, point.z - entry.root.position.z); trajectoryFacing = true; }
+          entry.root.position.set(point.x, point.y, point.z);
+        }
+        entry.ring.position.set(entry.root.position.x, entry.root.position.y + 0.12, entry.root.position.z);
+      }
+      this.animate(entry, now, trajectoryFacing);
+      entry.health.setEnabled(entry.healthEligible && (this.keys.has(this.preferences.bindings.health) || this.selected.includes(entry.id)));
+    }
+  }
+
   private animate(entry: RenderEntity, now: number, trajectoryFacing = false): void {
     if (!this.view || !this.assets) return;
     const entity = entry.entity;
@@ -534,7 +543,7 @@ export class World {
         const health = MeshBuilder.CreatePlane('health-background', { width: entity.kind === 'building' ? 3 : 1.5, height: 0.13 }, this.scene); health.parent = root; health.position.y = entity.kind === 'building' ? 5.6 : entity.typeId === 'trebuchet' ? 4 : 2.25; health.billboardMode = Mesh.BILLBOARDMODE_ALL; health.isPickable = false; health.material = this.material('health-background', '#172622');
         const healthFill = MeshBuilder.CreatePlane('health-current', { width: entity.kind === 'building' ? 2.95 : 1.45, height: 0.095 }, this.scene); healthFill.parent = health; healthFill.position.z = -0.015; healthFill.isPickable = false; healthFill.material = this.material('health-current', '#b4d290'); health.setEnabled(false);
         const asset = this.assets.instances.get(root)!;
-        entry = { asset, entity, wallMask: 5, motion: new MotionTrack(), moving: false, id: entity.id, root, ring, health, healthFill, healthEligible: entity.kind !== 'resource', from: root.position.clone(), target: root.position.clone(), received: performance.now(), hp: entity.hp };
+        entry = { asset, entity, staticResource: entity.kind === 'resource' && asset.asset.clips.every(clip => !clip.tracks.length), wallMask: 5, motion: new MotionTrack(), moving: false, id: entity.id, root, ring, health, healthFill, healthEligible: entity.kind !== 'resource', from: root.position.clone(), target: root.position.clone(), received: performance.now(), hp: entity.hp };
         this.rendered.set(entity.id, entry);
       }
       if(entry.asset.asset.id!==entity.typeId&&entity.kind!=='resource')this.assets.replace(entry.asset,entity.typeId);
@@ -867,34 +876,45 @@ export class World {
     const footprint = MeshBuilder.CreateGround('placement-footprint', { width: definition.footprintCells[0] * balance.rules.buildingGridM, height: definition.footprintCells[1] * balance.rules.buildingGridM }, this.scene);
     footprint.parent = this.previewMesh; footprint.position.y = 0.06; footprint.isPickable = false;
     for (const mesh of this.previewMesh.getChildMeshes()) { mesh.visibility = 0.45; mesh.isPickable = false; }
-    this.onPlacementHint('Choose a clear, explored site. Builders verify sites beyond current vision.');
+    this.onPlacementHint(definition.defaultGateMode ? 'Click the center of a gap or completed matching wall run. Gates align to nearby walls; rotation keys work on open ground.' : 'Choose a clear, explored site. Builders verify sites beyond current vision.');
   }
 
   rotatePlacement(degrees: number): void { this.placementRotation = ((this.placementRotation + degrees + 360) % 360) as Rotation; this.updatePlacement(this.placementTarget); }
+
+  /** Re-resolve on click against the latest view; never send a stale preview span. */
+  placementCommand(target: WorldTarget, builderIds: string[], queued: boolean): GameplayCommand | null {
+    if (!this.placement || !this.view) return null;
+    const placement = resolveBuildingPlacement(this.view, this.placement, target, this.placementRotation);
+    this.placementRotation = placement.rotation;
+    if (placement.reason) this.onPlacementHint(placement.reason);
+    return buildingPlacementCommand(this.placement, placement, builderIds, queued);
+  }
 
   private updatePlacement(target: WorldTarget | null): void {
     if (!target || !this.placement || !this.previewMesh || !this.view) return;
     this.placementTarget = target;
     const definition = buildings[this.placement]!; const gridMm = balance.rules.buildingGridM * 1000;
-    const x = Math.floor(target.xMm / gridMm), z = Math.floor(target.zMm / gridMm);
+    const placement = resolveBuildingPlacement(this.view, this.placement, target, this.placementRotation);
+    this.placementRotation = placement.rotation;
+    const { x, z } = placement.originCell;
     const [width, depth] = this.placementRotation % 180 ? [...definition.footprintCells].reverse() : definition.footprintCells;
     const centerX = (x + width! / 2) * gridMm, centerZ = (z + depth! / 2) * gridMm;
     this.previewMesh.position.set(centerX / 1000, this.elevation(centerX, centerZ) + 0.1, centerZ / 1000); this.previewMesh.rotation.y = this.placementRotation * Math.PI / 180;
     const visible = new Set(this.view.fog.visible), explored = new Set(this.view.fog.explored), columns = Math.ceil(this.view.map.widthMm / this.view.map.fogCellMm);
     const footprint = { xMm: x * gridMm, zMm: z * gridMm, widthMm: width! * gridMm, depthMm: depth! * gridMm };
     const discovered = (cells:Set<number>) => placementAreaDiscovered(footprint, this.view!.map.widthMm, this.view!.map.heightMm, this.view!.map.fogCellMm, balance.rules.treeBuildingClearanceM * 1000, (px, pz) => cells.has(Math.floor(pz / this.view!.map.fogCellMm) * columns + Math.floor(px / this.view!.map.fogCellMm)), this.view!.map.terrain ?? []);
-    let reason = (x + width!) * gridMm > this.view.map.widthMm || (z + depth!) * gridMm > this.view.map.heightMm ? 'Outside map boundary' : '';
+    let reason = x < 0 || z < 0 || (x + width!) * gridMm > this.view.map.widthMm || (z + depth!) * gridMm > this.view.map.heightMm ? 'Outside map boundary' : placement.reason ?? '';
     if (!discovered(explored)) reason = 'Site and resource clearance must be explored';
     if (!terrainBuildable(this.view.map.terrain ?? [], { xMm: x * gridMm, zMm: z * gridMm, widthMm: width! * gridMm, depthMm: depth! * gridMm })) reason = 'Water, crossing, or slope blocks this site';
     let valid = !reason;
     if (valid) for (const entity of this.view.entities) {
-      if (entity.ghost && entity.kind === 'unit' || entity.garrisonedIn || entity.kind === 'resource' && entity.amount === 0) continue;
+      if (placement.wallIds.includes(entity.id) || entity.ghost && entity.kind === 'unit' || entity.garrisonedIn || entity.kind === 'resource' && entity.amount === 0) continue;
       const radius = entity.kind === 'unit' ? (units[entity.typeId]?.collisionRadiusM ?? .4) * 1000 : resourcePlacementBounds(entity, balance.rules.treeBuildingClearanceM * 1000).halfWidth;
       const extents = entity.kind === 'building' ? buildings[entity.typeId]?.footprintCells.map((n) => n * gridMm / 2) ?? [gridMm / 2, gridMm / 2] : [radius, radius];
       if (entity.rotation && entity.rotation % 180) extents.reverse();
       if (Math.abs(entity.xMm - centerX) < width! * gridMm / 2 + extents[0]! && Math.abs(entity.zMm - centerZ) < depth! * gridMm / 2 + extents[1]!) { valid = false; reason = 'A unit, structure, or resource obstructs this site'; }
     }
-    this.onPlacementHint(valid ? `${discovered(visible) ? 'Clear visible site' : 'Explored site; builder will verify before construction'} — ${this.placementRotation}° — click to request construction.` : `× ${reason} · ${this.placementRotation}°`);
+    this.onPlacementHint(valid ? `${placement.wallIds.length ? `Replace ${placement.wallIds.length} completed walls at full gate cost` : discovered(visible) ? 'Clear visible site' : 'Explored site; builder will verify before construction'}${placement.aligned ? ' · aligned to wall' : ''} — ${this.placementRotation}° — click to request construction.` : `× ${reason} · ${this.placementRotation}°`);
     const asset = this.assets.instances.get(this.previewMesh); if (asset) this.assets.update(asset, { opacity: valid ? .55 : .2 });
     for (const mesh of this.previewMesh.getChildMeshes()) {
       mesh.visibility = valid ? 0.55 : 0.2;

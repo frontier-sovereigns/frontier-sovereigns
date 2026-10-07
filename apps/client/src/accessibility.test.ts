@@ -27,6 +27,11 @@ it('labels adaptive movement cadence separately from simulation speed and omits 
   expect(text).toContain('Adaptive movement');expect(text).toContain('Reduced 3');expect(text).toContain('200 ms');expect(text).toContain('intervals are game time');expect(text).toContain('Game speed is reported separately');expect(text).toContain('sustained overload');expect(text).not.toContain('40%');
   const coarse=renderToStaticMarkup(createElement(MovementCadenceDiagnostics,{pacing:{...pacing,authoritativeIntervalMs:600,tickIntervalMs:1500,movementTier:2,movementDecisionIntervalMs:600,publicationIntervalMs:600}}));
   expect(coarse).toContain('600 ms');expect(coarse).toContain('Authoritative frames advance 600 ms');expect(coarse).toContain('from 300 to 450 to 600 ms');expect(coarse).toContain('authorized movement history');expect(coarse).not.toContain('publication stays at 300 ms');
+  const pressured={...pacing,movementTier:2 as const,authoritativeIntervalMs:600 as const,memoryRecoveryBlocked:true};
+  expect(renderToStaticMarkup(createElement(MovementCadenceDiagnostics,{pacing:pressured}))).toContain('Automatic speed recovery is waiting for available host RAM');
+  expect(renderToStaticMarkup(createElement(MovementCadenceDiagnostics,{pacing:{...pressured,memoryRecoveryBlocked:false}}))).not.toContain('Close unused applications');
+  expect(renderToStaticMarkup(createElement(MovementCadenceDiagnostics,{pacing:{...pressured,speedPercent:100}}))).not.toContain('Close unused applications');
+  expect(coarse).not.toContain('Close unused applications');
 });
 
 it('separates queued local detours and route hints from confirmed movement',()=>{

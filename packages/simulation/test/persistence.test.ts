@@ -11,6 +11,18 @@ function roundTrip(sim:Simulation,preserveEpoch=true){const save=JSON.parse(JSON
 function compare(a:Simulation,b:Simulation){expect(JSON.stringify(b.capture())).toBe(JSON.stringify(a.capture()));for(const faction of a.state.factions)expect(b.view(faction.id)).toEqual(a.view(faction.id));}
 
 describe('M5 consistent state capture and restoration',()=>{
+  it('round-trips bounded per-faction giant invalidation clearance and accepts legacy saves',()=>{
+    const payload=simulation().capture();expect(payload.runtime.pathScheduler.invalidationClearances).toBeUndefined();
+    expect(validateSimulationSavePayload(payload)).toBe(true);payload.runtime.pathScheduler.invalidationClearances={blue:2400,red:1500};
+    const saved=sealSimulationCapture(payload,identity),restored=restoreSimulation(saved,identity,{preserveEpoch:true});expect(restored.capture()).toEqual(payload);expect(assertValidSave(exportSimulationSave(restored,identity),identity)).toBeUndefined();
+    for(const value of [{stranger:2400},{blue:999},{blue:10001}] as Record<string,number>[]){
+      const invalid=structuredClone(payload);invalid.runtime.pathScheduler.invalidationClearances=value;expect(()=>assertValidSave(sealSimulationCapture(invalid,identity),identity)).toThrow('INVALID_SAVE_PAYLOAD');
+    }
+    const undersized=structuredClone(payload);undersized.runtime.pathScheduler.invalidationClearances={blue:1500};undersized.runtime.pathScheduler.regions.push({key:'blue:2400:0,0',profile:'blue',radiusMm:2400,x:0,z:0,labels:Array(256).fill(-2),cursor:0,frontier:[],frontierCursor:0,label:0,complete:false});
+    expect(()=>assertValidSave(sealSimulationCapture(undersized,identity),identity)).toThrow('INVALID_SAVE_PAYLOAD');
+    delete undersized.runtime.pathScheduler.invalidationClearances;expect(validateSimulationSavePayload(undersized)).toBe(true);
+    expect(restoreSimulation(sealSimulationCapture(undersized,identity),identity,{preserveEpoch:true}).capture().runtime.pathScheduler.invalidationClearances).toEqual({blue:2400});
+  });
   it('checks save integrity without a discarded copy and preserves the public detached snapshot',()=>{
     const original=simulation(),save=exportSimulationSave(original,identity),encoded=JSON.stringify(save),clone=vi.spyOn(globalThis,'structuredClone');
     try{

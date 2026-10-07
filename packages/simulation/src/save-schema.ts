@@ -92,7 +92,7 @@ const sharedRequest=optional({id,unitId:id,orderRevision:integer(),from:position
 const sharedMember=object({request:sharedRequest,geometryRevision:integer(),widthMm:integer(1,640000),heightMm:integer(1,640000),startComponents:array(text(96,1),9,1),endComponents:array(text(96,1),1,1),connectorRegions:array(text(32,1),4096)});
 const sharedFrontier=optional({profile:id,radiusMm:number(1,10000),from:position,target:position,starts:array(integer(0,409599),9,1),ends:array(integer(0,409599),9,1),startComponents:array(text(96,1),9,1),endComponents:array(text(96,1),1,1),coarse:search,currentComponent:text(96,1),edgeCursor:integer(0,63)},['profile','radiusMm','from','target','starts','ends','startComponents','endComponents','coarse']);
 const sharedJobs=object({geometryVersions:record(integer(),11),registry:object({version:{const:1},serials:record(integer(),11),waiting:array(sharedMember,2200),jobs:array(object({id:text(128,1),key:text(4096,1),frontier:sharedFrontier,geometryRevision:integer(),widthMm:integer(1,640000),heightMm:integer(1,640000),members:array(sharedMember,32,1),dependencies:array(text(32,1),4096)}),704)})});
-const scheduler=optional({version:{const:1},tasks:array(task,2200),regions:array(region,100000),revisions:record(integer(),20000,text(128,1)),routes:array(tuple(text(4096,1),route),5632),cursor:integer(),profileCursors:record(integer(),11),priority:object({tick:integer(),profiles:record(object({phase:integer(0,3),interactive:integer(0,2200),routine:integer(0,2200),optional:integer(0,2200)}),11)}),sharedJobs},['version','tasks','regions','revisions','routes','cursor','profileCursors']);
+const scheduler=optional({version:{const:1},tasks:array(task,2200),regions:array(region,100000),revisions:record(integer(),20000,text(128,1)),routes:array(tuple(text(4096,1),route),5632),cursor:integer(),profileCursors:record(integer(),11),invalidationClearances:record(number(1000,10000),11),priority:object({tick:integer(),profiles:record(object({phase:integer(0,3),interactive:integer(0,2200),routine:integer(0,2200),optional:integer(0,2200)}),11)}),sharedJobs},['version','tasks','regions','revisions','routes','cursor','profileCursors']);
 const localRoute=optional({target:position,points:array(position,409600),retryTick:integer(),nextSearchCellMm:{enum:[250,1000]},neighborStamp:text(65536),stableSinceTick:integer(),lastProgress:flag,yield:object({requesterId:id,untilTick:integer(),point:position,origin:position})},['target','points','retryTick']);
 // An acknowledged save contains compact waiting intents and bounded admitted
 // answers. Worker-only neighbor snapshots and in-flight authority cannot persist.
@@ -163,6 +163,7 @@ function semantic(payload:SimulationSavePayload):boolean {
   for(const data of [s.economies,s.vision,s.controllers,s.control,s.pathAdmission!])if(!sameKeys(Object.keys(data),ids))return false;
   for(const entries of [r.planningProfiles,r.approachReservations,r.localAvoidance])if(!sameKeys(entries.map(([id])=>id),ids))return false;
   if(!Object.keys(r.pathScheduler.profileCursors!).every(id=>owners.has(id)))return false;
+  if(r.pathScheduler.invalidationClearances&&!Object.keys(r.pathScheduler.invalidationClearances).every(id=>owners.has(id)))return false;
   const fogCells=s.widthMm/2000*s.heightMm/2000;if(s.widthMm%2000||s.heightMm%2000||fogCells>102400)return false;
   for(const [id,e]of Object.entries(s.entities)){
     if(id!==e.id||e.xMm>s.widthMm||e.zMm>s.heightMm||e.hp>e.maxHp||e.kind!=='resource'&&!owners.has(e.ownerId))return false;
@@ -254,8 +255,10 @@ function semantic(payload:SimulationSavePayload):boolean {
     }
   }
   const scheduler=r.pathScheduler;if(!unique(scheduler.tasks.map(task=>task.unitId))||!unique(scheduler.regions.map(region=>region.key))||!unique(scheduler.routes.map(([key])=>key)))return false;
+  const validClearance=(profile:string,radius:number)=>!scheduler.invalidationClearances||(scheduler.invalidationClearances[profile]??1000)>=radius;
   if(scheduler.priority&&(scheduler.priority.tick>s.tick||Object.keys(scheduler.priority.profiles).some(profile=>!owners.has(profile))))return false;
   for(const task of scheduler.tasks){
+    if(!validClearance(task.profile,task.radiusMm))return false;
     if((task.workClass===undefined)!==(task.enqueuedTick===undefined)||task.enqueuedTick!==undefined&&(task.enqueuedTick>s.tick||!scheduler.priority))return false;
     if(!owners.has(task.profile)||s.entities[task.unitId]?.ownerId!==task.profile||task.lineStep>task.lineSteps||task.stage==='done'&&!task.result||task.stage!=='done'&&task.result||['coarse','fine'].includes(task.stage)&&(!task.starts||!task.ends)||task.stage==='fine'&&(!task.fine||!task.coarse||!task.corridor)||task.currentComponent!==undefined&&(!task.coarse||task.edgeCursor===undefined)||task.currentCell!==undefined&&(!task.fine||task.neighborCursor===undefined))return false;
     if(task.coarse&&(!task.startComponents||!task.endComponents||!task.cacheKey)||task.currentComponent!==undefined&&!Object.hasOwn(task.coarse!.scores,task.currentComponent)||task.currentCell!==undefined&&!Object.hasOwn(task.fine!.scores,String(task.currentCell))||(task.edgeCursor===undefined)!==(task.currentComponent===undefined)||(task.neighborCursor===undefined)!==(task.currentCell===undefined))return false;
@@ -293,8 +296,8 @@ function semantic(payload:SimulationSavePayload):boolean {
       const checked=new Set<string>();for(const key of Object.keys(search.parents)){const chain=new Set<string>();let cursor:string|undefined=key;while(cursor!==undefined&&!checked.has(cursor)){if(chain.has(cursor))return false;chain.add(cursor);cursor=search.parents[cursor];}for(const item of chain)checked.add(item);}
     }
   }
-  for(const region of scheduler.regions)if(!owners.has(region.profile)||region.key!==`${region.profile}:${region.radiusMm}:${region.x},${region.z}`||region.frontierCursor>region.frontier.length||!unique(region.frontier)||region.complete&&(region.cursor!==256||region.labels.includes(-2)))return false;
-  const routeCounts=new Map<string,number>();for(const [,route]of scheduler.routes){const count=(routeCounts.get(route.profile)??0)+1;if(!owners.has(route.profile)||count>512)return false;routeCounts.set(route.profile,count);}
+  for(const region of scheduler.regions)if(!validClearance(region.profile,region.radiusMm)||!owners.has(region.profile)||region.key!==`${region.profile}:${region.radiusMm}:${region.x},${region.z}`||region.frontierCursor>region.frontier.length||!unique(region.frontier)||region.complete&&(region.cursor!==256||region.labels.includes(-2)))return false;
+  const routeCounts=new Map<string,number>();for(const [,route]of scheduler.routes){const count=(routeCounts.get(route.profile)??0)+1;if(!validClearance(route.profile,route.radiusMm)||!owners.has(route.profile)||count>512)return false;routeCounts.set(route.profile,count);}
   if(scheduler.sharedJobs){
     const sharedState=scheduler.sharedJobs;if(!scheduler.priority||Object.keys(sharedState.geometryVersions).some(profile=>!owners.has(profile))||Object.keys(sharedState.registry.serials).some(profile=>!owners.has(profile)))return false;
     const tasks=new Map(scheduler.tasks.map(task=>[task.unitId,task]));

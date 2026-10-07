@@ -987,6 +987,9 @@ describe('native phase role rosters',()=>{
     const live=createLiveSimulation(setup.options,setup.payload),scalar=new Simulation(setup.options,setup.payload),before=Simulation.phaseRosterDiagnostics();
     await compare(live,scalar);const after=Simulation.phaseRosterDiagnostics();
     expect(after.rebuilt-before.rebuilt).toBe(1);for(const key of ['gates','transitions','production','farms'] as const)expect(after[key]-before[key]).toBe(6);
+    // Six contact boundaries plus the final geometry flush visit the one gate,
+    // not the 24 unrelated houses, other actors or 128 resource nodes.
+    expect(after.planningGates-before.planningGates).toBe(7);
     expect((live.state.entities[setup.home.id] as Building).queue[0]!.work).toBe(6);expect((live.state.entities[setup.farm.id] as Building).farmerId).toBeUndefined();expect((live.state.entities[setup.trebuchet.id] as Unit).transitionTicks).toBe(2);
     const cold=createLiveSimulation(setup.options,live.capture());await compare(live,scalar);cold.advanceFrame();await cold.synchronizeCapture();expect(cold.capture()).toEqual(live.capture());expect((live.state.entities[setup.trebuchet.id] as Unit).deploymentState).toBe('packing');
     expect(validateSimulationSavePayload(live.capture()),JSON.stringify(validateSimulationSavePayload.errors)).toBe(true);const runner=new ReplayRunner(exportReplay(live,identity,[replayCheckpoint(live)]),identity);expect(runner.advanceTo(live.state.tick).done).toBe(true);expect(runner.simulation.capture()).toEqual(live.capture());

@@ -7,20 +7,70 @@ import { createAssetLibrary, generateUnitAssets, generateBuildingAssets, generat
 import { AssetRenderer, type AssetInstance } from './AssetRenderer';
 import { MotionTrack } from './MotionTrack';
 import { replayPlaybackStep, replayViewCompatible } from './ReplayPanel';
+import { defaultPreferences } from './preferences';
 const library = createAssetLibrary(), bundle = library.finish([...generateUnitAssets(library), ...generateBuildingAssets(library), ...generateEnvironmentAssets(library)]);
 
 const engines: NullEngine[] = [];
 afterEach(() => { for (const engine of engines.splice(0)) engine.dispose(); });
-function harness() {
+function harness(assetBundle = bundle) {
   const engine = new NullEngine(); engines.push(engine); const scene = new Scene(engine);
   // Only platform initialization is replaced. All object creation, filtered snapshot
   // updates, selection, fog, and upgrade code execute through the production World.
   const world = Object.create(World.prototype) as World;
-  const internals = { assets: new AssetRenderer(scene, bundle), engine, scene, camera: new ArcRotateCamera('test-camera', 0, 0.8, 45, Vector3.Zero(), scene), preview: new TransformNode('preview', scene), materials: new Map(), shadows: { addShadowCaster() {} }, rendered: new Map<string, { root: TransformNode; ring: { isEnabled(): boolean }; healthFill: { scaling: Vector3 } }>(), selected: [] as string[], view: null, lastFog: '', projectiles: new Map(), projectilePool: [], effects: new Map(), seenEffects: new Set(), pingMeshes: new Map<string, TransformNode>(), wallPreview: [] as Mesh[], onSelection() {}, onPlacementHint() {} };
+  const internals = { assets: new AssetRenderer(scene, assetBundle), engine, scene, camera: new ArcRotateCamera('test-camera', 0, 0.8, 45, Vector3.Zero(), scene), preview: new TransformNode('preview', scene), materials: new Map(), shadows: { addShadowCaster() {} }, rendered: new Map<string, { root: TransformNode; ring: { isEnabled(): boolean }; healthFill: { scaling: Vector3 } }>(), selected: [] as string[], view: null, lastFog: '', projectiles: new Map(), projectilePool: [], effects: new Map(), seenEffects: new Set(), pingMeshes: new Map<string, TransformNode>(), wallPreview: [] as Mesh[], keys: new Set<string>(), preferences: defaultPreferences(), onSelection() {}, onPlacementHint() {} };
   Object.assign(world, internals); return { world, internals, scene };
 }
 function view(entities: ViewEntity[]): PlayerView { return { protocolVersion: 2, contentHash: 'isolated-render-fixture', matchId: 'render-fixture', matchEpoch: 1, tick: 0, sequence: 0, playerId: 'me', status: 'RUNNING', map: { widthMm: 40000, heightMm: 40000, fogCellMm: 4000 }, self: { lastCommandSequence: 0, resources: { food: 0, wood: 0, gold: 0, stone: 0 }, age: 1, population: 1, populationCap: 15, populationLimit: 120, reservedPopulation: 0 }, players: [{ id: 'me', name: 'Mine', teamId: 'one', kind: 'human', color: '#8ac6bd', age: 1 }, { id: 'enemy', name: 'Other', teamId: 'two', kind: 'human', color: '#cd9376', age: 1 }], entities, fog: { visible: Array.from({ length: 100 }, (_, i) => i), explored: Array.from({ length: 100 }, (_, i) => i) } }; }
 const entity = (typeId: string, kind: 'building' | 'unit', id = typeId): ViewEntity => ({ id, kind, typeId, ownerId: 'me', xMm: 16000, zMm: 16000, hp: 30, maxHp: 100, progress: 1, visualAge: 1, visualTier: 'base' });
+
+it('keeps static resource drawing and picking while removing display-frame pose copies', () => {
+  const {world, internals} = harness();
+  const resources = ['tree_oak', 'tree_pine', 'tree_round_canopy', 'forage_patch', 'gold_deposit', 'stone_quarry'].map((typeId, index): ViewEntity => ({id: typeId, typeId, kind: 'resource', ownerId: null, xMm: 10000 + index * 4000, zMm: 16000, hp: 1, maxHp: 1, resource: typeId.startsWith('tree') ? 'wood' : typeId === 'forage_patch' ? 'food' : typeId === 'gold_deposit' ? 'gold' : 'stone', amount: 250}));
+  const snapshot = view([...resources, {...entity('villager', 'unit'), xMm: 32000, zMm: 28000}]);
+  const display = world as unknown as {animateEntities(now: number, coarse: boolean, presentationMs: number): void};
+  world.setView(snapshot); world.setStreamActive(true);
+  const entries = resources.map(resource => internals.rendered.get(resource.id)!);
+  const assets = entries.map(entry => internals.assets.instances.get(entry.root)!);
+  // Natural meshes have gaps between leaves/berries/ore; a center ray need not
+  // hit. Find a real surface first, then preserve that exact picking result.
+  const rays = resources.map((resource, index) => [-1.5, -1, -.5, 0, .5, 1, 1.5].flatMap(x => [-1.5, -1, -.5, 0, .5, 1, 1.5].map(z => new Ray(new Vector3(resource.xMm / 1000 + x, 12, resource.zMm / 1000 + z), new Vector3(0, -1, 0)))).find(ray => internals.assets.pickDistance(assets[index]!, ray) !== null));
+  resources.forEach((resource, index) => expect(rays[index], `${resource.typeId} has a pickable surface`).toBeDefined());
+  const hits = assets.map((asset, index) => internals.assets.pickDistance(asset, rays[index]!));
+  const draw = () => {internals.assets.render(new Vector3(20, 30, 20)); const {instances, batches, visibleParts, triangles} = internals.assets.metrics; return {instances, batches, visibleParts, triangles};};
+  const drawn = draw(); expect(drawn.visibleParts).toBeGreaterThan(0);
+  const appearance = assets.map(asset => asset.appearance), context = assets.map(asset => asset.context);
+  const update = vi.spyOn(internals.assets, 'update');
+  for (let frame = 0; frame < 10; frame++) display.animateEntities(performance.now() + frame * 16, false, 0);
+  // All six resource types formerly incurred one pose/context update per frame:
+  // 60 redundant calls eliminated, while ten live-unit updates still execute.
+  expect(update).toHaveBeenCalledTimes(10);
+  expect(update.mock.calls.every(([asset]) => asset.asset.id === 'villager')).toBe(true);
+  expect(draw()).toEqual(drawn);
+  assets.forEach((asset, index) => {expect(asset.appearance).toBe(appearance[index]); expect(asset.context).toBe(context[index]); expect(internals.assets.pickDistance(asset, rays[index]!)).toBe(hits[index]);});
+  world.select([resources[0]!.id]); expect(entries[0]!.ring.isEnabled()).toBe(true);
+  world.setView({...snapshot, tick: 6, entities: snapshot.entities.map(item => item.id === 'tree_oak' ? {...item, ghost: true, lastSeenTick: 0} : item)});
+  expect(assets[0]!.appearance.ghost).toBe(true);
+  update.mockClear(); for (let frame = 0; frame < 10; frame++) display.animateEntities(performance.now() + frame * 16, false, 0);
+  expect(update.mock.calls.some(([asset]) => asset.asset.id.startsWith('tree'))).toBe(false);
+  // A committed authorized depletion removes art immediately; no stale static
+  // frame cache can retain it. Unobserved depletion is not inferred in a ghost.
+  world.setView({...snapshot, tick: 12, entities: snapshot.entities.map(item => item.id === 'tree_oak' ? {...item, amount: 0} : item)});
+  expect(internals.rendered.has('tree_oak')).toBe(false); expect(entries[0]!.root.isDisposed()).toBe(true);
+  expect(internals.assets.instances.has(entries[0]!.root)).toBe(false);
+  world.setView({...snapshot, tick: 18, entities: [], fog: {visible: [], explored: snapshot.fog.explored}});
+  expect(internals.rendered.size).toBe(0); expect(entries.every(entry => entry.root.isDisposed())).toBe(true);
+});
+
+it('continues display-frame animation if a resource asset contains an animated track', () => {
+  const base = bundle.assets.forage_patch!, nodeId = base.variants[0]!.nodes[1]!.id;
+  const animated = {...base, clips: [{id: 'idle', durationSeconds: 1, loop: true, tracks: [{nodeId, property: 'position' as const, times: [0, 1], values: [[0, 0, 0], [0, 1, 0]] as [number, number, number][]}]}]};
+  const {world, internals} = harness({...bundle, assets: {...bundle.assets, forage_patch: animated}});
+  world.setView(view([{id: 'forage', typeId: 'forage_patch', kind: 'resource', ownerId: null, xMm: 16000, zMm: 16000, hp: 1, maxHp: 1, resource: 'food', amount: 100}]));
+  const update = vi.spyOn(internals.assets, 'update');
+  (world as unknown as {animateEntities(now: number, coarse: boolean, presentationMs: number): void}).animateEntities(performance.now(), false, 0);
+  expect(update).toHaveBeenCalledTimes(1); expect(update.mock.calls[0]![0].asset.id).toBe('forage_patch');
+});
+
 it.each(Object.values(buildings).filter(building=>building.minAge>=5).map(building=>[building.id,building.minAge] as const))('keeps selected %s roofs opaque and pickable at age %s', (typeId,age)=>{
   const {world,internals,scene}=harness(),building={...entity(typeId,'building'),hp:100,visualAge:age as AgeId},snapshot=view([building]);
   world.setView(snapshot);const entry=internals.rendered.get(building.id)!,asset=internals.assets.instances.get(entry.root)!;
